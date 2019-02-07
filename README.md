@@ -1,0 +1,1 @@
+This is a repository for quick assignments and projects created in coordination with learning ES6. The items vary in skill from basic to more advanced and showcase the knowledge of ES6.
