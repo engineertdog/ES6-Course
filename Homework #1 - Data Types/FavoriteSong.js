@@ -7,12 +7,13 @@
 
 /**
  *
- * @param {*string} artist
- * @param {*string} genre
- * @param {*int - seconds} duration
- * @param {*string - MM D, YYYY} published
- * @param {*boolean} explicit
- * @param {*array} featuredArtists
+ * @param {string} title Song Title
+ * @param {string} artist Song Artist
+ * @param {string} genre Song Genre
+ * @param {number} duration Song Duration in Seconds
+ * @param {string - MM D, YYYY} published Date in MM D, YYYY Format
+ * @param {boolean} explicit Whether or not the song is explicit
+ * @param {array} featuredArtists Array of additional artists showcased in the song
  */
 function FavoriteSong(title, artist, genre, duration, published, isExplicit, featuredArtists) {
     this.title = title;
