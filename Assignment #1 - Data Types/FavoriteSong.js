@@ -11,7 +11,7 @@
  * @param {string} artist Song Artist
  * @param {string} genre Song Genre
  * @param {number} duration Song Duration in Seconds
- * @param {string - MM D, YYYY} published Date in MM D, YYYY Format
+ * @param {string} published Date in MM D, YYYY Format
  * @param {boolean} explicit Whether or not the song is explicit
  * @param {array} featuredArtists Array of additional artists showcased in the song
  */
