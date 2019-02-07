@@ -38,5 +38,5 @@ function FavoriteSong(title, artist, genre, duration, published, isExplicit, fea
     }
 }
 
-let numb = new FavoriteSong("Numb", "August Alsina", "", 252, "December 2, 2013", true, ["B.o.B.", "Yo Gotti"]);
+let numb = new FavoriteSong("Numb", "August Alsina", "Alternative R&B", 252, "December 2, 2013", true, ["B.o.B.", "Yo Gotti"]);
 numb.discussSong();
