@@ -1,5 +1,5 @@
 /**
- * Homework #1 - Data Types
+ * Assignment #1 - Data Types
  *
  * The favorite song object can be utilized to showcase your favorite song
  *
