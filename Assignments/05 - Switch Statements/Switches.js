@@ -18,6 +18,14 @@ const minutes = "minutes";
 const minute = "minute";
 const seconds = "seconds";
 
+// Setup time conversions
+const secondsInMinutes = 60;
+const secondsInHours = 60 * 60;
+const secondsInDays = 60 * 60 * 24;
+const minutesInHours = 60;
+const minutesInDays = 60 * 24;
+const hoursInDays = 24;
+
 // Setup our data for the tests
 const tests = {
     test1: [
@@ -162,21 +170,21 @@ const convertTime = (time, currentFormat, targetFormat) => {
             return time;
         case days:
             if (targetFormat === hours) {
-                return time * 24;
+                return time * hoursInDays;
             } else if (targetFormat === minutes) {
-                return time * 24 * 60;
+                return time * minutesInDays;
             } else {
-                return time * 24 * 60 * 60;
+                return time * secondsInDays;
             }
         case hours:
             if (targetFormat === minutes) {
-                return time * 60;
+                return time * minutesInHours;
             } else {
-                return time * 60 * 60;
+                return time * secondsInHours;
             }
         case minutes:
             if (targetFormat === seconds) {
-                return time * 60;
+                return time * secondsInMinutes;
             }
         default:
             return time;
@@ -203,8 +211,8 @@ const timeRoundUp = (time, format) => {
     // which is based on the right format for a whole number.
     switch (format) {
         case hours:
-            if (time % 24 === 0) {
-                newTime = time / 24;
+            if (time % hoursInDays === 0) {
+                newTime = time / hoursInDays;
                 newFormat = days;
             }
 
@@ -213,12 +221,12 @@ const timeRoundUp = (time, format) => {
                 format: newFormat
             };
         case minutes:
-            if (time % 60 === 0) {
-                if (time % (60 * 24) === 0) {
-                    newTime = time / (60 * 24);
+            if (time % minutesInHours === 0) {
+                if (time % minutesInDays === 0) {
+                    newTime = time / minutesInDays;
                     newFormat = days;
                 } else {
-                    newTime = time / 60;
+                    newTime = time / minutesInHours;
                     newFormat = hours;
                 }
             }
@@ -228,17 +236,17 @@ const timeRoundUp = (time, format) => {
                 format: newFormat
             };
         case seconds:
-            if (time % 60 === 0) {
-                if (time % (60 * 60) === 0) {
-                    if (time % (60 * 60 * 24) === 0) {
-                        newTime = time / (60 * 60 * 24);
+            if (time % secondsInMinutes === 0) {
+                if (time % secondsInHours === 0) {
+                    if (time % secondsInDays === 0) {
+                        newTime = time / secondsInDays;
                         newFormat = days;
                     } else {
-                        newFormat = time / (60 * 60);
+                        newFormat = time / secondsInHours;
                         newFormat = hours;
                     }
                 } else {
-                    newTime = time / 60;
+                    newTime = time / secondsInMinutes;
                     newFormat = minutes;
                 }
             }
