@@ -55,11 +55,11 @@ const invalid = syllogisms.invalid;
  * @param {string} identifier The main identifier for the syllogism
  * @param {string} value The value to test within the syllogism
  */
-const syllogism = (syllogism, identifier, value) => {
+const syllogism = (syllogism, identifier, value, chocolate = null) => {
     if (syllogism === human.syllogism) {
         return humanSyllogism(identifier, value);
     } else if (syllogism === desert.syllogism) {
-        return desertSyllogism(identifier, value);
+        return desertSyllogism(identifier, value, chocolate);
     } else {
         return "You've entered an invalid logical argument identifier!";
     }
@@ -103,9 +103,11 @@ const desertSyllogism = (identifier, value, chocolate) => {
 }
 
 let socrates = syllogism(human.syllogism, human.identifiers.men, human.values.socrates);
-let vanillaCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.vanilla);
+let vanillaCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.vanilla, false);
+let chocolateCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.chocolate, true);
 let invalidSyllogism = syllogism(invalid.syllogism, invalid.identifiers.invalid, invalid.values.invalid);
 
 console.log(socrates);
 console.log(vanillaCake);
+console.log(chocolateCake);
 console.log(invalidSyllogism);
