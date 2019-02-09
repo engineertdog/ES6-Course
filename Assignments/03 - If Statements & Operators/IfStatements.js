@@ -59,7 +59,7 @@ const invalid = syllogisms.invalid;
  * @param {string} value The value to test within the syllogism
  * @param {string} mortal Optional value for the human syllogism
  */
-function syllogism(syllogism, identifier, value, mortal = null) {
+const syllogism = (syllogism, identifier, value, mortal = null) => {
     if (syllogism === human.syllogism) {
         humanSyllogism(identifier, value, mortal);
     } else if (syllogism === desert.syllogism) {
@@ -78,7 +78,7 @@ function syllogism(syllogism, identifier, value, mortal = null) {
  * @param {string} value The value to test within the syllogism
  * @param {string} mortal Optional value for the human syllogism
  */
-function humanSyllogism(identifier, value, mortal) {
+const humanSyllogism = (identifier, value, mortal) => {
     if (identifier === human.identifiers.men) {
         if (mortal === human.extra.mortal) {
             if (value === human.values.socrates) {
@@ -101,7 +101,7 @@ function humanSyllogism(identifier, value, mortal) {
  * @param {string} identifier The main identifier of the syllogism
  * @param {string} value The value to test within the syllogism
  */
-function desertSyllogism(identifier, value) {
+const desertSyllogism = (identifier, value) => {
     if (identifier === desert.identifiers.cake) {
         if ((value === desert.values.vanilla) || (value === desert.values.chocolate)) {
             if (value !== desert.values.chocolate) {
