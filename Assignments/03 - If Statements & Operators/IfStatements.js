@@ -10,8 +10,8 @@
 
 // Object to hold all of the syllogism data.
 const syllogisms = {
-    men: {
-        syllogism: "Men Syllogism",
+    human: {
+        syllogism: "Human Syllogism",
         identifiers: {
             men: "men",
             women: "women"
@@ -24,8 +24,8 @@ const syllogisms = {
             mortal: true
         }
     },
-    cake: {
-        syllogism: "Cake Syllogism",
+    desert: {
+        syllogism: "Desert Syllogism",
         identifiers: {
             cake: "cake",
             pie: "pie"
@@ -47,22 +47,23 @@ const syllogisms = {
 }
 
 // Setup quick reference points for the syllogisms object to make access easier and cleaner.
-const men = syllogisms.men;
-const cake = syllogisms.cake;
+const human = syllogisms.human;
+const desert = syllogisms.desert;
 const invalid = syllogisms.invalid;
 
 /**
+ * Takes in syllogism arguments to determine which function to invoke
  *
  * @param {string} syllogism The syllogism to test
  * @param {string} identifier The main identifier for the syllogism
  * @param {string} value The value to test within the syllogism
- * @param {string} mortal Optional value for the men syllogism
+ * @param {string} mortal Optional value for the human syllogism
  */
 function syllogism(syllogism, identifier, value, mortal = null) {
-    if (syllogism === men.syllogism) {
-        menSyllogism(identifier, value, mortal);
-    } else if (syllogism === cake.syllogism) {
-        cakeSyllogism(identifier, value);
+    if (syllogism === human.syllogism) {
+        humanSyllogism(identifier, value, mortal);
+    } else if (syllogism === desert.syllogism) {
+        desertSyllogism(identifier, value);
     } else {
         console.log("You've entered an invalid logical argument identifier!");
     }
@@ -70,15 +71,17 @@ function syllogism(syllogism, identifier, value, mortal = null) {
 
 
 /**
+ * Human syllogism checks to see if the identifier is "men", and then whether or not the person is mortal. Finally,
+ * The function checks if the person is also Socrates.
  *
  * @param {string} identifier The main identifier of the syllogism
  * @param {string} value The value to test within the syllogism
- * @param {string} mortal Optional value for the men syllogism
+ * @param {string} mortal Optional value for the human syllogism
  */
-function menSyllogism(identifier, value, mortal) {
-    if (identifier === men.identifiers.men) {
-        if (mortal === men.extra.mortal) {
-            if (value === men.values.socrates) {
+function humanSyllogism(identifier, value, mortal) {
+    if (identifier === human.identifiers.men) {
+        if (mortal === human.extra.mortal) {
+            if (value === human.values.socrates) {
                 console.log("Socrates is mortal because he is a man.");
             } else {
                 console.log("You aren't Socrates. I don't care.");
@@ -92,14 +95,16 @@ function menSyllogism(identifier, value, mortal) {
 }
 
 /**
+ * Determines whether or not the desert is desert. If it is, it checks the flavor and logs info based on the flavor
+ * of the desert.
  *
  * @param {string} identifier The main identifier of the syllogism
  * @param {string} value The value to test within the syllogism
  */
-function cakeSyllogism(identifier, value) {
-    if (identifier === cake.identifiers.cake) {
-        if ((value === cake.values.vanilla) || (value === cake.values.chocolate)) {
-            if (value !== cake.values.chocolate) {
+function desertSyllogism(identifier, value) {
+    if (identifier === desert.identifiers.cake) {
+        if ((value === desert.values.vanilla) || (value === desert.values.chocolate)) {
+            if (value !== desert.values.chocolate) {
                 console.log("You have vanilla cake! While this is awesome, it is because you are not chocolate cake.");
             } else {
                 console.log("Boo, you have chocolate cake!");
@@ -112,7 +117,7 @@ function cakeSyllogism(identifier, value) {
     }
 }
 
-let socrates = new syllogism(men.syllogism, men.identifiers.men, men.values.socrates, men.extra.mortal);
-let immortalExample = new syllogism(men.syllogism, men.identifiers.men, men.values.socrates, !men.extra.mortal);
-let vanillaCake = new syllogism(cake.syllogism, cake.identifiers.cake, cake.values.vanilla);
-let invalidSyllogism = new syllogism(invalid.syllogism, invalid.identifiers.invalid, invalid.values.invalid);
+let socrates = syllogism(human.syllogism, human.identifiers.men, human.values.socrates, human.extra.mortal);
+let immortalExample = syllogism(human.syllogism, human.identifiers.men, human.values.socrates, !human.extra.mortal);
+let vanillaCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.vanilla);
+let invalidSyllogism = syllogism(invalid.syllogism, invalid.identifiers.invalid, invalid.values.invalid);
