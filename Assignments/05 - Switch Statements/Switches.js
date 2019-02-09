@@ -196,6 +196,10 @@ const timeRoundUp = (time, format) => {
     let newFormat = format;
 
     // Switch the current time format
+    // We check to see if the modulus of stepping a time value up to the next time format is equal to 0.
+    // If the remainder is 0 and there is no higher time format, we return with the new time value and format.
+    // Otherwise, we return with the time value and format that is a result of the appropriate IF function
+    // which is based on the right format for a whole number.
     switch (format) {
         case hours:
             if (time % 24 === 0) {
