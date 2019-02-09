@@ -117,6 +117,7 @@ const desertSyllogism = (identifier, value) => {
     }
 }
 
+// Setup our tests and set them to constants (though not needed as this setup uses console.log within the functions)
 const socrates = syllogism(human.syllogism, human.identifiers.men, human.values.socrates, human.extra.mortal);
 const immortalExample = syllogism(human.syllogism, human.identifiers.men, human.values.socrates, !human.extra.mortal);
 const vanillaCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.vanilla);

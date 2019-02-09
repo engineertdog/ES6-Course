@@ -102,11 +102,13 @@ const desertSyllogism = (identifier, value, chocolate) => {
     }
 }
 
+// Setup our tests and set them to constants to use in the console.log
 const socrates = syllogism(human.syllogism, human.identifiers.men, human.values.socrates);
 const vanillaCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.vanilla, false);
 const chocolateCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.chocolate, true);
 const invalidSyllogism = syllogism(invalid.syllogism, invalid.identifiers.invalid, invalid.values.invalid);
 
+// Log the results of the tests
 console.log(socrates);
 console.log(vanillaCake);
 console.log(chocolateCake);

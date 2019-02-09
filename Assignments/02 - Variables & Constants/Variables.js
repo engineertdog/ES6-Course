@@ -108,6 +108,7 @@ const exConst = () => {
     }
 }
 
+// Execute our example functions for the different variable types
 exVar();
 exLet();
 exConst();

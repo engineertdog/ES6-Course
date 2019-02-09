@@ -39,5 +39,8 @@ function FavoriteSong(title, artist, genre, duration, published, isExplicit, fea
     }
 }
 
+// Setup the numb constant with a new FavoriteSong object that can be used elsewhere
 const numb = new FavoriteSong("Numb", "August Alsina", "Alternative R&B", 252, "December 2, 2013", true, ["B.o.B.", "Yo Gotti"]);
+
+// Showcase the ability to use functions from the FavoriteSong object tied to the numb variable
 numb.discussSong();
