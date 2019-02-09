@@ -1,14 +1,15 @@
 /**
  * Assignment #5 - Switch Statements
  *
- * The set of functions below check a couple of different syllogisms. The information for the syllogisms are contained
- * within the constant at the top of the file. One function takes the inputs and determines which function to send them
- * to, if to any function at all. Each function then determines the path of execuation of statements based on the given
- * values.
+ * The set of functions below combine two time values & formats into one totalized time value and format.
+ * Only positive numbers and valid time formats are allowed to be entered. All others will result in an
+ * error message. With two inputs to the timeAddition function, they are added using the lowest time format
+ * between the two inputs. Once totalized, timeRoundUp looks to see if the totalized time can be raised
+ * to the next format, or higher.
  *
  */
 
-// Setup quick string references
+// Setup string references
 const days = "days";
 const day = "day";
 const hours = "hours";
@@ -58,7 +59,7 @@ const tests = {
 }
 
 /**
- * timeAdder adds two numerical values for diferent (or same) time sets using the lowest
+ * timeAddition adds two numerical values for diferent (or same) time sets using the lowest
  * time measurement label between the two time sets. Function only allows practical time values
  * and labels to be entered. The function uses convertTime to convert to the lowest time
  * measurement between the two time sets. If the result can be rounded up to the next label
@@ -66,7 +67,7 @@ const tests = {
  *
  * @param {array} inputs Test array with children datasets of objects that contain test data
  */
-const timeAdder = (inputs) => {
+const timeAddition = (inputs) => {
     // Initialize some variables to hold time data
     let lowestTimeFormat;
     let totalTime = 0;
@@ -146,9 +147,9 @@ const timeAdder = (inputs) => {
 /**
  * This function serves the purpose to convert the current time value to the desired target time value format
  *
- * @param {number} num
- * @param {string} currentFormat
- * @param {string} targetFormat
+ * @param {number} time The time value to format into the lowest common format
+ * @param {string} currentFormat The current format for the time variable
+ * @param {string} targetFormat The target format for the time variable
  */
 const convertTime = (time, currentFormat, targetFormat) => {
     // We start by switching the current time's format
@@ -187,8 +188,8 @@ const convertTime = (time, currentFormat, targetFormat) => {
  * The function will only round up the time format if it can round the time value to a whole number within
  * the next time format.
  *
- * @param {number} time
- * @param {string} format
+ * @param {number} time The total time value to re-format into higher level formats, if possible
+ * @param {string} format The desired time format
  */
 const timeRoundUp = (time, format) => {
     // Set our return values to the values sent to the function
@@ -255,10 +256,10 @@ const timeRoundUp = (time, format) => {
 }
 
 // Setup our tests and set them to constants to use in the console.log
-const doTest1 = timeAdder(tests.test1);
-const doTest2 = timeAdder(tests.test2);
-const doTest3 = timeAdder(tests.test3);
-const doTest4 = timeAdder(tests.test4);
+const doTest1 = timeAddition(tests.test1);
+const doTest2 = timeAddition(tests.test2);
+const doTest3 = timeAddition(tests.test3);
+const doTest4 = timeAddition(tests.test4);
 
 // Log the results of the tests
 console.log(doTest1);
