@@ -102,10 +102,10 @@ const desertSyllogism = (identifier, value, chocolate) => {
     }
 }
 
-let socrates = syllogism(human.syllogism, human.identifiers.men, human.values.socrates);
-let vanillaCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.vanilla, false);
-let chocolateCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.chocolate, true);
-let invalidSyllogism = syllogism(invalid.syllogism, invalid.identifiers.invalid, invalid.values.invalid);
+const socrates = syllogism(human.syllogism, human.identifiers.men, human.values.socrates);
+const vanillaCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.vanilla, false);
+const chocolateCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.chocolate, true);
+const invalidSyllogism = syllogism(invalid.syllogism, invalid.identifiers.invalid, invalid.values.invalid);
 
 console.log(socrates);
 console.log(vanillaCake);

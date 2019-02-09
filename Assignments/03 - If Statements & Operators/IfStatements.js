@@ -117,7 +117,7 @@ const desertSyllogism = (identifier, value) => {
     }
 }
 
-let socrates = syllogism(human.syllogism, human.identifiers.men, human.values.socrates, human.extra.mortal);
-let immortalExample = syllogism(human.syllogism, human.identifiers.men, human.values.socrates, !human.extra.mortal);
-let vanillaCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.vanilla);
-let invalidSyllogism = syllogism(invalid.syllogism, invalid.identifiers.invalid, invalid.values.invalid);
+const socrates = syllogism(human.syllogism, human.identifiers.men, human.values.socrates, human.extra.mortal);
+const immortalExample = syllogism(human.syllogism, human.identifiers.men, human.values.socrates, !human.extra.mortal);
+const vanillaCake = syllogism(desert.syllogism, desert.identifiers.cake, desert.values.vanilla);
+const invalidSyllogism = syllogism(invalid.syllogism, invalid.identifiers.invalid, invalid.values.invalid);
