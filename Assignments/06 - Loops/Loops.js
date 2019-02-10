@@ -28,7 +28,7 @@ const moduloData = [
  *
  * @param {number} start Number we want to start at
  * @param {number} end Number we want to end at
- * @param {array} modulus
+ * @param {array} modulus Array of numbers and print data to use modulus with
  */
 const numLogger = (start, end, modulus) => {
     for (let i = start; i <= end; i++) {
