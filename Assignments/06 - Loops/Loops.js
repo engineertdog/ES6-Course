@@ -1,7 +1,10 @@
 /**
  * Assignment #6 - Loops
  *
- * The set of functions below
+ * The set of functions below check a set of numbers from a defined start and end point to see if they are
+ * either a prime number, or divisible by the array of modulus information provided. If the numbers are
+ * prime, then "Prime is logged". If the numbers can be divided by the set of numbers provided, then their
+ * respective print data is logged. Otherwise, the number itself is logged.
  *
  */
 
