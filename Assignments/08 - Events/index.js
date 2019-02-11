@@ -1,6 +1,9 @@
 /**
  * Assignment #8 - Events
  *
+ * File is used to control a game of tic tac toe. A box object is set up to hold the game's moves, and a
+ * winning moves array is created to check the box object against to determine if there are any winners.
+ * Game is restart upon victory or a cat's game.
  *
  */
 
