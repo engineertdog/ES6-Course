@@ -187,14 +187,18 @@ const doRegister = (e) => {
         const existingUsers = JSON.parse(localStorage.getItem("users"));
 
 
-        if (existingUsers === null || existingUsers) {
-            if (existingUsers[email] === null || typeof existingUsers[email] === "undefined") {
+        if (existingUsers === null) {
+            contRegister = true;
+        } else {
+            if (existingUsers[email] === null) {
+                contRegister = true;
+            } else if (typeof existingUsers[email] === "undefined") {
                 contRegister = true;
             }
         }
 
         if (contRegister) {
-            const user = existingUsers;
+            const user = Object.assign({}, existingUsers);
             user[email] = {
                 firstName: t.registerFirstName.value,
                 lastName: t.registerLastName.value,
