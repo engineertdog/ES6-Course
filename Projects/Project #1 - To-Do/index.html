@@ -128,7 +128,7 @@
 
                     <form id="todoTaskForm" class="form" style="max-width: 100%;" novalidate>
                         <div id="todoListError" class="alert alert-danger d-none" role="alert"></div>
-                        <input id="taskNum" type="hidden" required />
+                        <input id="taskNum" type="hidden" value="0" required />
 
                         <div class="form-label-group">
                             <input type="text" id="todoListName" class="form-control" placeholder="List Name" required autofocus />
@@ -136,13 +136,12 @@
                             <div id="todoListNameError" class="invalid-feedback"></div>
                         </div>
 
-
                         <div id="taskItemContainer">
-                            <div class="list-group">
+                            <div id="noDeleteTask" class="list-group">
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <div class="input-group-text">
-                                            <input type="checkbox" class="taskItemDone" />
+                                            <input id="requiredTaskDone" type="checkbox" class="taskItemDone" />
                                         </div>
                                     </div>
                                     <input id="requiredTask" type="text" class="form-control taskItem" placeholder="Task" required />
