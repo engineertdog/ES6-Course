@@ -14,6 +14,10 @@
  *
  */
 
+const projectDataURL = "http://localhost:5000/project1data";
+let appData;
+let taskItemNum = 0;
+
 // User information for logged in session.
 let userData = [];
 // Logged in tracker
@@ -59,7 +63,7 @@ const validationRules = {
     registerTerms: {
         text: "Please agree to the terms of use"
     },
-    todoListName: {
+    todoTaskListName: {
         min: {
             value: 5,
             text: "Task List name must be at least 5 characters."
@@ -97,411 +101,1118 @@ const validationRules = {
     }
 }
 
-/**
- * A user changes pages in this one page application by starting with this function. The function
- * takes the triggering object and checks what it is to determine what page to show. We hide the
- * logged in pages and related navbar info when the user logs out, or we hide the guest pages when
- * the user is logged in.
- *
- * @param {object} e Node triggering to change the screen. Typically a button.
- */
-const changeScreen = (e) => {
-    // Set the target to t for easier calling
-    const t = e.target;
-    // Set the target id to id for easier calling
-    const id = t.id;
+const startApp = () => {
+    /**
+     * A user changes pages in this one page application by starting with this function. The function
+     * takes the triggering object and checks what it is to determine what page to show. We hide the
+     * logged in pages and related navbar info when the user logs out, or we hide the guest pages when
+     * the user is logged in.
+     *
+     * @param {object} e Node triggering to change the screen. Typically a button.
+     */
+    const changeScreen = (e) => {
+        // Set the target to t for easier calling
+        const t = e.target;
+        // Set the target id to id for easier calling
+        const id = t.id;
 
-    // If the node clicked was the github button, we return from the function to allow the user to
-    // visit the link. Otherwise, we prevent the default action of links.
-    if (id === "github") {
-        return;
-    } else {
-        e.preventDefault();
-    }
-
-    if (oldPage === "loginUser") {
-        loginError.classList.add("d-none");
-        loginError.innerText = "";
-    }
-
-    if (oldPage === "registerUser") {
-        registerError.classList.add("d-none");
-        registerError.innerText = "";
-    }
-
-    if (oldPage === "settingsPage") {
-        settingsError.classList.add("d-none");
-        settingsError.classList.remove("alert-danger", "alert-success", "alert-info");
-        settingsError.innerText = "";
-    }
-
-    if (oldPage === "todoListPage") {
-        todoTaskForm.querySelector("#taskNum").value = 0;
-        todoListError.classList.remove("alert-success");
-        todoListError.classList.add("alert-danger", "d-none");
-        todoListError.innerText = "";
-        resetTodoListForm();
-    }
-
-    // Set the previous page to the new page's ID. We need to set this here because when the user
-    // clicks on the "View List" button for tasks, it will incorrectly set the id. This is fixed in
-    // the pageDisplay function with this set up here.
-    oldPage = id;
-
-    // Display the correct page, and perform other functions, based on the button the user clicked.
-    if (t.classList.contains("guestButton")) {
-        // Display the correct guest page when the user is logged out.
-        pageDisplay(guestPage, id);
-    } else if (t.classList.contains("userButton")) {
-        // This section could be reduced, but, the order of events is important because delays could
-        // cause display issues.
-
-        // User clicks logout button.
-        if (id === "logoutButton") {
-            // Make all of the logged in pages disappear.
-            pageDisplay(userPage, id);
-            // Send the user back to the intro to the application.
-            pageDisplay(guestPage, "intro", id);
-            // Display the correct buttons for the user to be logged out.
-            buttonDisplay();
-            // Return from the function because we don't want to check the functions below.
+        // If the node clicked was the github button, we return from the function to allow the user to
+        // visit the link. Otherwise, we prevent the default action of links.
+        if (id === "github") {
             return;
+        } else {
+            e.preventDefault();
         }
 
-        // If the user just logged in, hide the guest pages and change the buttons displayed.
-        if (!loggedIn) {
+        // If the user left the login page, reset the login error display.
+        if (oldPage === "loginUser") {
+            loginError.classList.add("d-none");
+            loginError.innerText = "";
+        }
+
+        // If the user left the register page, reset the register error display.
+        if (oldPage === "registerUser") {
+            registerError.classList.add("d-none");
+            registerError.innerText = "";
+        }
+
+        // If the user left the settings page, reset the settings error display.
+        if (oldPage === "settingsPage") {
+            settingsError.classList.add("d-none");
+            settingsError.classList.remove("alert-danger", "alert-success", "alert-info");
+            settingsError.innerText = "";
+        }
+
+        // If the user left the To-Do Task List page, reset the error display.
+        if (oldPage === "todoTaskListPage") {
+            todoTaskListError.classList.remove("alert-success");
+            todoTaskListError.classList.add("alert-danger", "d-none");
+            todoTaskListError.innerText = "";
+            resetTodoTaskListForm();
+        }
+
+        // Set the previous page to the new page's ID. We need to set this here because when the user
+        // clicks on the "View List" button for tasks, it will incorrectly set the id. This is fixed in
+        // the pageDisplay function with this set up here.
+        oldPage = id;
+
+        // Display the correct page, and perform other functions, based on the button the user clicked.
+        if (t.classList.contains("guestButton")) {
+            // Display the correct guest page when the user is logged out.
             pageDisplay(guestPage, id);
-            buttonDisplay();
-        }
+        } else if (t.classList.contains("userButton")) {
+            // This section could be reduced, but, the order of events is important because delays could
+            // cause display issues.
 
-        // Display the correct logged in page.
-        pageDisplay(userPage, id);
-    } else if (t.classList.contains("taskViewButton")) {
-        // This is invoked when the user clicks on "View List" button on the To-Do List page.
-        // This will correctly display the edit form for the select To-Do List.
-        pageDisplay(userPage, "todoListPage", null, "Edit");
-        // Set the form up to display the selected To-Do's List to be edited.
-        displayTaskListItems(t.id);
-    }
-}
-
-/**
- * Loop through all of the guestButtons and userButtons to show or hide them depending on what their
- * current state is. We also toggle the loggedIn variable to indicate whether or not the user is logged
- * into the application.
- */
-const buttonDisplay = () => {
-    // Loop through the guestButtons to show / hide them.
-    for (const button of guestButtons) {
-        button.classList.toggle("d-none");
-    }
-
-    // Loop through the userButtons to show / hide them.
-    for (const button of userButtons) {
-        button.classList.toggle("d-none");
-    }
-
-    // Toggle whether the user is logged in or not.
-    loggedIn = !loggedIn;
-
-    // If the user becomes logged out, empty the userData variable.
-    if (!loggedIn) {
-        userData = [];
-    }
-}
-
-/**
- * Display the page the user intends to view based on the button clicked. The HTML collection of
- * pages to check is passed and looped through.
- *
- * @param {object} pages HTML Collection of pages to loop through.
- * @param {string} id ID of the desired page to view.
- * @param {string} button Triggering button.
- * @param {string} todoAction Action to control the To-Do List form header.
- */
-const pageDisplay = (pages, id, button = null, todoAction = null) => {
-    // Loop through collection.
-    for (const page of pages) {
-        // Set the classlist to a variable for easier usage.
-        const classes = page.classList;
-
-        // If the page does not have the d-none class, add it.
-        if (!classes.contains("d-none")) {
-            classes.add("d-none");
-        }
-
-        // If the current item in the HTML collection is the one we want to view, do a few things.
-        if (classes.contains(id)) {
-            // First, remove the d-none class so we can view the page.
-            classes.remove("d-none");
-
-            // Switch the ID to perform additional actions.
-            switch (id) {
-                case "loginUser":
-                    // Set the focus to the email field on the login page.
-                    forms.querySelector("#loginEmail").focus();
-                    break;
-                case "registerUser":
-                    // Set the focus to the first name field on the register page.
-                    forms.querySelector("#registerFirstName").focus();
-                    break;
-                case "dashboardPage":
-                    // Get the list of To-Do Lists for the current user.
-                    getToDolist();
-                    break;
-                case "todoListPage":
-                    // Set focus to the To-Do List name.
-                    forms.querySelector("#todoListName").focus();
-                    // Set the previous page variable to the To-Do List form page. This is because
-                    // when the user clicks the "View List" button on the Dashboard, this variable
-                    // get set to the wrong value otherwise.
-                    oldPage = "todoListPage";
-
-                    // Set the header of the To-Do List form page.
-                    if (todoAction === null) {
-                        todoListHeader.innerText = "Create List";
-                    } else {
-                        todoListHeader.innerText = "Edit List";
-                    }
-                    break;
-                case "settingsPage":
-                    // Set focus to the first name field on the settings page.
-                    forms.querySelector("#firstName").focus();
-
-                    // Loop through the userData variable and set the settings input fields to
-                    // the value of the setting in the userData variable.
-                    for (const d in userData) {
-                        forms.querySelector("#" + d).value = userData[d];
-                    }
-
-                    break;
+            // User clicks logout button.
+            if (id === "logoutButton") {
+                // Make all of the logged in pages disappear.
+                pageDisplay(userPage, id);
+                // Send the user back to the intro to the application.
+                pageDisplay(guestPage, "intro", id);
+                // Display the correct buttons for the user to be logged out.
+                buttonDisplay();
+                // Return from the function because we don't want to check the functions below.
+                return;
             }
-        }
 
-        // Help the user to see the intro page of the application when they click logout.
-        if ((button === "logoutButton") && (page.id === id)) {
-            classes.remove("d-none");
-        }
-    }
-}
-
-/**
- * Function handles the login actions when the login form is submitted.
- *
- * @param {object} e Form node
- */
-const doLogin = (e) => {
-    // Set the form target to t
-    const t = e.target;
-    // Grab the user's data list from storage. Normally, this would be from a database.
-    const users = JSON.parse(localStorage.getItem("users"));
-    // Set email to an variable for easier use
-    let email = t.loginEmail.value;
-    // Set continue login to false so we can reject or accept the login.
-    let contLogin = false;
-    // Reset the login error div attributes.
-    loginError.classList.add("d-none");
-    loginError.innerText = "";
-
-    // If the users object exists in storage, look to see if the user exists
-    if (users) {
-        // If the email entered is in the user object, continue to see if they can log in
-        if (typeof users[email] !== "undefined") {
-            contLogin = true;
-        }
-    }
-
-    // Let the user log in, or show an error message
-    if (contLogin) {
-        // Check the user password against the user object
-        if (t.loginPassword.value === users[email].password) {
-            // Copy the user's data from the users object to a global variable userData for access throughout the application.
-            userData = Object.assign({}, users[email]);
-            // Simulate a click on the dashboardButton to simulate changing pages.
-            dashboardButton.click();
-            // Reset the login form.
-            t.reset();
-        } else {
-            // Display an error message if the user entered an invalid password for their account.
-            loginError.classList.remove("d-none");
-            loginError.innerText = "Your password is incorrect.";
-        }
-    } else {
-        // Show an error message if the user's email is not in the user object
-        loginError.classList.remove("d-none");
-        loginError.innerText = "There is no account associated with that email.";
-    }
-}
-
-/**
- * Function handles the register actions when the register form is submitted.
- *
- * @param {object} e Form node
- */
-const doRegister = (e) => {
-    // Set the form target to t
-    const t = e.target;
-    // Validate the form
-    const register = doValidation(e.target);
-    // Set a function continue variable to false initally so checks can be performed.
-    let contRegister = false;
-    // Reset the register error div attributes.
-    registerError.classList.add("d-none");
-    registerError.innerText = "";
-
-    // If the form has no errors, continue. Errors will be displayed by default through the function called by register.
-    if (register) {
-        // Set the entered email to a re-useable variable
-        const email = t.registerEmail.value;
-        // Grab the user object from storage. Normally, this would be from a database.
-        const existingUsers = JSON.parse(localStorage.getItem("users"));
-
-        // If there are no users yet, continue.
-        if (existingUsers === null) {
-            contRegister = true;
-        } else {
-            // If the email entered does not exist in the user object, continue. This will be true when the existing users object is null.
-            if (existingUsers[email] === null) {
-                contRegister = true;
-                // If the email entered does not exist in the user object, continue. This will be true when there are existing users and the user object is not null.
-            } else if (typeof existingUsers[email] === "undefined") {
-                contRegister = true;
+            // If the user just logged in, hide the guest pages and change the buttons displayed.
+            if (!loggedIn) {
+                pageDisplay(guestPage, id);
+                buttonDisplay();
             }
-        }
 
-        // Continue if the email is not already used.
-        if (contRegister) {
-            // Copy the user object to a new variable.
-            const user = Object.assign({}, existingUsers);
-            // Create a new entry for the user object with the key being the user's email.
-            user[email] = {
-                firstName: t.registerFirstName.value,
-                lastName: t.registerLastName.value,
-                email: email,
-                password: t.registerPassword.value
-            };
-
-            // Set the user object in storage to the new user object with the newly created user.
-            localStorage.setItem("users", JSON.stringify(user));
-            // Copy the user data to a global variable for use throughout the application.
-            userData = Object.assign({}, user[email]);
-            // Simulate a click on the dashboardButton to simulate changing pages.
-            dashboardButton.click();
-            // Reset the register form.
-            t.reset();
-
-            // Remove the validation attributes from the register form inputs.
-            for (const i of t) {
-                i.classList.remove("is-valid", "is-invalid");
-            }
-        } else {
-            // Display an error if the selected email is already in use.
-            registerError.classList.remove("d-none");
-            registerError.innerText = "That email is already in use.";
-        }
-    }
-}
-
-/**
- * Grab the To-Do Lists for the current user.
- */
-const getToDolist = () => {
-    // Set continue to false so we can perform checks.
-    let contLists = false;
-    // Grab the taskList object from storage. Normally, this would be from a database.
-    const taskList = JSON.parse(localStorage.getItem("taskList"));
-    // Initialize a variable to hold the HTML for the To-Do Lists to be displayed.
-    let taskHolder = "";
-
-    // Check if the taskList object exists.
-    if (taskList) {
-        // If the user has task lists saved at one point, continue.
-        if (typeof taskList[userData.email] !== "undefined") {
-            // If the user actually has task lists, and hasn't deleted them all, then show their tasks.
-            if (Object.keys(taskList[userData.email]).length !== 0) {
-                contLists = true;
-            }
+            // Display the correct logged in page.
+            pageDisplay(userPage, id);
+        } else if (t.classList.contains("taskViewButton")) {
+            // This is invoked when the user clicks on "View List" button on the To-Do List page.
+            // This will correctly display the edit form for the select To-Do List.
+            pageDisplay(userPage, "todoTaskListPage", null, "Edit");
+            // Set the form up to display the selected To-Do's List to be edited.
+            displayTaskListItems(t.id);
         }
     }
 
-    // Continue if the user has content to show.
-    if (contLists) {
-        // Loop through the user's task lists
-        for (const listData in taskList[userData.email]) {
-            // Setup a variable for easier data access.
-            const taskListItem = taskList[userData.email][listData];
-            // Setup a counter for complete and incomplete tasks.
-            let complete = incomplete = 0;
+    /**
+     * Loop through all of the guestButtons and userButtons to show or hide them depending on what their
+     * current state is. We also toggle the loggedIn variable to indicate whether or not the user is logged
+     * into the application.
+     */
+    const buttonDisplay = () => {
+        // Loop through the guestButtons to show / hide them.
+        for (const button of guestButtons) {
+            button.classList.toggle("d-none");
+        }
 
-            // Loop through each task in the To-Do Task List and increment the complete or incomplete counter
-            // based on whether the task has been checked as done.
-            for (const i in taskListItem.tasks) {
-                if (taskListItem.tasks[i].done) {
-                    complete++;
-                } else {
-                    incomplete++;
+        // Loop through the userButtons to show / hide them.
+        for (const button of userButtons) {
+            button.classList.toggle("d-none");
+        }
+
+        // Toggle whether the user is logged in or not.
+        loggedIn = !loggedIn;
+
+        // If the user becomes logged out, empty the userData variable.
+        if (!loggedIn) {
+            userData = [];
+        }
+    }
+
+    /**
+     * Display the page the user intends to view based on the button clicked. The HTML collection of
+     * pages to check is passed and looped through.
+     *
+     * @param {object} pages HTML Collection of pages to loop through.
+     * @param {string} id ID of the desired page to view.
+     * @param {string} button Triggering button.
+     * @param {string} todoAction Action to control the To-Do List form header.
+     */
+    const pageDisplay = (pages, id, button = null, todoAction = null) => {
+        // Loop through collection.
+        for (const page of pages) {
+            // Set the classlist to a variable for easier usage.
+            const classes = page.classList;
+
+            // If the page does not have the d-none class, add it.
+            if (!classes.contains("d-none")) {
+                classes.add("d-none");
+            }
+
+            // If the current item in the HTML collection is the one we want to view, do a few things.
+            if (classes.contains(id)) {
+                // First, remove the d-none class so we can view the page.
+                classes.remove("d-none");
+
+                // Switch the ID to perform additional actions.
+                switch (id) {
+                    case "loginUser":
+                        // Set the focus to the email field on the login page.
+                        app.querySelector("#loginEmail").focus();
+                        break;
+                    case "registerUser":
+                        // Set the focus to the first name field on the register page.
+                        app.querySelector("#registerFirstName").focus();
+                        break;
+                    case "dashboardPage":
+                        // Get the list of To-Do Lists for the current user.
+                        gettodoTaskList();
+                        break;
+                    case "todoTaskListPage":
+                        // Set focus to the To-Do List name.
+                        app.querySelector("#todoTaskListName").focus();
+                        // Set the previous page variable to the To-Do List form page. This is because
+                        // when the user clicks the "View List" button on the Dashboard, this variable
+                        // get set to the wrong value otherwise.
+                        oldPage = "todoTaskListPage";
+
+                        // Set the header of the To-Do List form page.
+                        if (todoAction === null) {
+                            todoTaskListHeader.innerText = "Create List";
+                        } else {
+                            todoTaskListHeader.innerText = "Edit List";
+                        }
+                        break;
+                    case "settingsPage":
+                        // Set focus to the first name field on the settings page.
+                        app.querySelector("#firstName").focus();
+
+                        // Loop through the userData variable and set the settings input fields to
+                        // the value of the setting in the userData variable.
+                        for (const d in userData) {
+                            app.querySelector("#" + d).value = userData[d];
+                        }
+
+                        break;
                 }
             }
 
-            // Add the task to the HTML variable so it can be displayed.
-            taskHolder +=
-                "<li class='list-group-item d-flex justify-content-between align-items-center'>" +
-                "   <div>" +
-                "       <span class='badge badge-success badge-pill px-2 mr-2 py-1'> " + complete + "</span>" +
-                "       <span class='badge badge-danger badge-pill px-2 mr-2 py-1'> " + incomplete + "</span>" +
-                taskListItem.taskName +
-                "   </div>" +
-                "   <div>" +
-                "       <button id='list-" + listData + "' type='button' class='btn btn-custom taskViewButton'>View List</button>" +
-                "       <button id='del-" + listData + "' type='button' class='btn btn-danger taskDeleteButton'>Delete List</button>" +
-                "   </div>" +
-                "</li>";
-        }
-
-        // Add the To-Do Task List HTML content to the page.
-        todoListContainer.innerHTML = taskHolder;
-    } else {
-        // Show a message if the user has no task lists.
-        todoListContainer.innerHTML = "<p>You currently do not have any To-Do Lists made. Create one now!</p>"
-    }
-}
-
-/**
- * Function taks in the ID of the task list to be displayed. The same form is used for both To-Do Task List creation and editing.
- * This form enables the ability to use the same form and populates it with the right data.
- *
- * @param {string} id String ID of the To-Do Task List to be displayed.
- */
-const displayTaskListItems = (id) => {
-    // Grab the ID string and extract the number from the string (in format list-####).
-    id = id.substring(5, id.length);
-    // Grab the taskList object from storage. Normally, this would be from a database.
-    const taskList = JSON.parse(localStorage.getItem("taskList"));
-
-    // Continue if the task list exists.
-    if (taskList[userData.email][id] !== "undefined") {
-        // Set the To-Do Task List to a variable for easier access
-        const thisTaskList = taskList[userData.email][id];
-        // Set the form's taskNum hidden input to the list's number so it can be updated.
-        todoTaskForm.querySelector("#taskNum").value = id;
-        // Set the name of the task list in the form.
-        todoTaskForm.querySelector("#todoListName").value = thisTaskList.taskName;
-        // At least one task is required to create a list, so we set this required input's task name and done attribute to the first
-        // item from the task list.
-        todoTaskForm.querySelector("#requiredTask").value = thisTaskList.tasks[0].task;
-        todoTaskForm.querySelector("#requiredTaskDone").checked = thisTaskList.tasks[0].done;
-
-        // Loop through the task list's tasks.
-        for (const i in thisTaskList.tasks) {
-            // Do not include the first item as this was set above.
-            if (parseInt(i) !== 0) {
-                // Set the done variable to checked or an empty string based on whether the task was marked done or not.
-                const checked = thisTaskList.tasks[i].done ? "checked" : "";
-                // Add the task item to the page.
-                addTaskItem(checked, thisTaskList.tasks[i].task, i)
+            // Help the user to see the intro page of the application when they click logout.
+            if ((button === "logoutButton") && (page.id === id)) {
+                classes.remove("d-none");
             }
         }
     }
+
+    /**
+     * Function handles the login actions when the login form is submitted.
+     *
+     * @param {object} e Form node
+     */
+    const doLogin = (e) => {
+        // Set the form target to t
+        const t = e.target;
+        // Grab the user's data list from storage. Normally, this would be from a database.
+        const users = JSON.parse(localStorage.getItem("users"));
+        // Set email to an variable for easier use
+        let email = t.loginEmail.value;
+        // Set continue login to false so we can reject or accept the login.
+        let contLogin = false;
+        // Reset the login error div attributes.
+        loginError.classList.add("d-none");
+        loginError.innerText = "";
+
+        // If the users object exists in storage, look to see if the user exists
+        if (users) {
+            // If the email entered is in the user object, continue to see if they can log in
+            if (typeof users[email] !== "undefined") {
+                contLogin = true;
+            }
+        }
+
+        // Let the user log in, or show an error message
+        if (contLogin) {
+            // Check the user password against the user object
+            if (t.loginPassword.value === users[email].password) {
+                // Copy the user's data from the users object to a global variable userData for access throughout the application.
+                userData = Object.assign({}, users[email]);
+                // Simulate a click on the dashboardButton to simulate changing pages.
+                dashboardButton.click();
+                // Reset the login form.
+                t.reset();
+            } else {
+                // Display an error message if the user entered an invalid password for their account.
+                loginError.classList.remove("d-none");
+                loginError.innerText = "Your password is incorrect.";
+            }
+        } else {
+            // Show an error message if the user's email is not in the user object
+            loginError.classList.remove("d-none");
+            loginError.innerText = "There is no account associated with that email.";
+        }
+    }
+
+    /**
+     * Function handles the register actions when the register form is submitted.
+     *
+     * @param {object} e Form node
+     */
+    const doRegister = (e) => {
+        // Set the form target to t
+        const t = e.target;
+        // Validate the form
+        const register = doValidation(e.target);
+        // Set a function continue variable to false initally so checks can be performed.
+        let contRegister = false;
+        // Reset the register error div attributes.
+        registerError.classList.add("d-none");
+        registerError.innerText = "";
+
+        // If the form has no errors, continue. Errors will be displayed by default through the function called by register.
+        if (register) {
+            // Set the entered email to a re-useable variable
+            const email = t.registerEmail.value;
+            // Grab the user object from storage. Normally, this would be from a database.
+            const existingUsers = JSON.parse(localStorage.getItem("users"));
+
+            // If there are no users yet, continue.
+            if (existingUsers === null) {
+                contRegister = true;
+            } else {
+                // If the email entered does not exist in the user object, continue. This will be true when the existing users object is null.
+                if (existingUsers[email] === null) {
+                    contRegister = true;
+                    // If the email entered does not exist in the user object, continue. This will be true when there are existing users and the user object is not null.
+                } else if (typeof existingUsers[email] === "undefined") {
+                    contRegister = true;
+                }
+            }
+
+            // Continue if the email is not already used.
+            if (contRegister) {
+                // Copy the user object to a new variable.
+                const user = Object.assign({}, existingUsers);
+                // Create a new entry for the user object with the key being the user's email.
+                user[email] = {
+                    firstName: t.registerFirstName.value,
+                    lastName: t.registerLastName.value,
+                    email: email,
+                    password: t.registerPassword.value
+                };
+
+                // Set the user object in storage to the new user object with the newly created user.
+                localStorage.setItem("users", JSON.stringify(user));
+                // Copy the user data to a global variable for use throughout the application.
+                userData = Object.assign({}, user[email]);
+                // Simulate a click on the dashboardButton to simulate changing pages.
+                dashboardButton.click();
+                // Reset the register form.
+                t.reset();
+
+                // Remove the validation attributes from the register form inputs.
+                for (const i of t) {
+                    i.classList.remove("is-valid", "is-invalid");
+                }
+            } else {
+                // Display an error if the selected email is already in use.
+                registerError.classList.remove("d-none");
+                registerError.innerText = "That email is already in use.";
+            }
+        }
+    }
+
+    /**
+     * Grab the To-Do Lists for the current user.
+     */
+    const gettodoTaskList = () => {
+        // Set continue to false so we can perform checks.
+        let contLists = false;
+        // Grab the taskList object from storage. Normally, this would be from a database.
+        const taskList = JSON.parse(localStorage.getItem("taskList"));
+        // Initialize a variable to hold the HTML for the To-Do Lists to be displayed.
+        let taskHolder = "";
+
+        // Check if the taskList object exists.
+        if (taskList) {
+            // If the user has task lists saved at one point, continue.
+            if (typeof taskList[userData.email] !== "undefined") {
+                // If the user actually has task lists, and hasn't deleted them all, then show their tasks.
+                if (Object.keys(taskList[userData.email]).length !== 0) {
+                    contLists = true;
+                }
+            }
+        }
+
+        // Continue if the user has content to show.
+        if (contLists) {
+            // Loop through the user's task lists
+            for (const listData in taskList[userData.email]) {
+                // Setup a variable for easier data access.
+                const taskListItem = taskList[userData.email][listData];
+                // Setup a counter for complete and incomplete tasks.
+                let complete = incomplete = 0;
+
+                // Loop through each task in the To-Do Task List and increment the complete or incomplete counter
+                // based on whether the task has been checked as done.
+                for (const i in taskListItem.tasks) {
+                    if (taskListItem.tasks[i].done) {
+                        complete++;
+                    } else {
+                        incomplete++;
+                    }
+                }
+
+                // Add the task to the HTML variable so it can be displayed.
+                taskHolder +=
+                    `<li class='list-group-item d-flex justify-content-between align-items-center'>
+                       <div>
+                           <span class='badge badge-success badge-pill px-2 mr-2 py-1'> ${complete}</span>
+                           <span class='badge badge-danger badge-pill px-2 mr-2 py-1'> ${incomplete}</span>
+                            ${taskListItem.taskName}
+                       </div>
+                       <div>
+                           <button id='list-${listData}' type='button' class='btn btn-custom taskViewButton'>View List</button>
+                           <button id='del-${listData}' type='button' class='btn btn-danger taskDeleteButton'>Delete List</button>
+                       </div>
+                    </li>`;
+            }
+
+            // Add the To-Do Task List HTML content to the page.
+            todoTaskListContainer.innerHTML = taskHolder;
+        } else {
+            // Show a message if the user has no task lists.
+            todoTaskListContainer.innerHTML = "<p>You currently do not have any To-Do Lists made. Create one now!</p>"
+        }
+    }
+
+    /**
+     * Function taks in the ID of the task list to be displayed. The same form is used for both To-Do Task List creation and editing.
+     * This form enables the ability to use the same form and populates it with the right data.
+     *
+     * @param {string} id String ID of the To-Do Task List to be displayed.
+     */
+    const displayTaskListItems = (id) => {
+        // Grab the ID string and extract the number from the string (in format list-####).
+        id = id.substring(5, id.length);
+        // Grab the taskList object from storage. Normally, this would be from a database.
+        const taskList = JSON.parse(localStorage.getItem("taskList"));
+
+        // Continue if the task list exists.
+        if (taskList[userData.email][id] !== "undefined") {
+            // Set the To-Do Task List to a variable for easier access
+            const thisTaskList = taskList[userData.email][id];
+            // Set the taskNum variable to the list's number so it can be updated.
+            todoTaskForm.querySelector("#taskNum").value = id;
+            // Set the name of the task list in the form.
+            todoTaskForm.querySelector("#todoTaskListName").value = thisTaskList.taskName;
+            // At least one task is required to create a list, so we set this required input's task name and done attribute to the first
+            // item from the task list.
+            todoTaskForm.querySelector("#requiredTask").value = thisTaskList.tasks[0].task;
+            todoTaskForm.querySelector("#requiredTaskDone").checked = thisTaskList.tasks[0].done;
+
+            // Loop through the task list's tasks.
+            for (const i in thisTaskList.tasks) {
+                // Do not include the first item as this was set above.
+                if (parseInt(i) !== 0) {
+                    // Set the done variable to checked or an empty string based on whether the task was marked done or not.
+                    const checked = thisTaskList.tasks[i].done ? "checked" : "";
+                    // Add the task item to the page.
+                    taskItemContainer.appendChild(addTaskItem(checked, thisTaskList.tasks[i].task, i));
+                }
+            }
+        }
+    }
+
+    const addTaskItemToContainer = () => {
+        taskItemContainer.appendChild(addTaskItem());
+    }
+
+    /**
+     * Function deletes a task input node. Can either be invoked through clicking the deleteTaskItem button for an input, or through looping each delete button
+     * which is done on form save or page change.
+     *
+     * @param {object} e Task Input Node to be deleted
+     */
+    const deleteTaskItem = (e) => {
+        // The function can be invoked with a form element or a button, so set the target here that we'll set with an IF statement below.
+        let t;
+
+        // If the node that invoked the function was a form, classlist will be undefined. Set the target to 'e' for when button nodes
+        // invoke the function, otherwise set it it to e.target for forms.
+        if (typeof e.classList !== "undefined") {
+            t = e;
+        } else {
+            t = e.target;
+        }
+
+        // Check if the node that triggered the function has the deleteTaskItem or trash can 'fa' icon. This means the user wanted to
+        // remove the task item from the form.
+        if (t.classList.contains("deleteTaskItem") || t.classList.contains("fa-trash-alt")) {
+            // Find the task item's parent container.
+            const container = t.closest(".list-group");
+
+            // If the container is not the required one for the form, remove it from the page.
+            if (container.id !== "noDeleteTask") {
+                // Decrease task item counter by 1 for form validation purposes.
+                taskItemNum--;
+                container.remove();
+            }
+        }
+    }
+
+    /**
+     * Handles the actions for when the To-Do Task List form is submitted.
+     *
+     * @param {object} e Form node
+     */
+    const savetodoTaskList = (e) => {
+        // Set the target element to a re-usable variable
+        const t = e.target;
+        // Set the task list to an empty array.
+        const tasks = [];
+        // Set a counter for the task items.
+        let count = 0;
+
+        // Grab all of the task items and the checkbox that indicates if a task is done
+        const taskItems = taskItemContainer.getElementsByClassName("taskItem");
+        const taskDone = taskItemContainer.getElementsByClassName("taskItemDone");
+
+        // Loop through the form elements.
+        for (const i of t) {
+            // If the element has the class taskItem, add it to the tasks array
+            if (i.classList.contains("taskItem")) {
+                // Add the current (based on count) task to the task array. This will only run for form elements that have
+                // the taskItem class, so this will not capture invalid data, and we can use the index of the taskItems and
+                // taskDone objects because of this.
+                tasks.push({
+                    done: taskDone[count].checked,
+                    task: taskItems[count].value
+                });
+
+                // Increment the task counter
+                count++;
+            }
+        }
+
+        // Grab the taskList object from storage. Normally, this would be from a database.
+        const existingTasks = JSON.parse(localStorage.getItem("taskList"));
+
+        // If there are no tasks, allow creation.
+        if (existingTasks === null) {
+            taskNum = 1;
+        } else {
+            // If the user has not created any task lists yet, set the index of the task list to 1.
+            if (typeof existingTasks[userData.email] === "undefined") {
+                taskNum = 1;
+            } else {
+                // If we're adding a task list, we want to get the number of task lists the user has created, from the
+                // task list object, and add one to create the new task list.
+                if (e.target.taskNum.value == 0) {
+                    taskNum = Object.keys(existingTasks[userData.email]).length + 1;
+                } else {
+                    // If we're editing a task list, we want to grab the task list's index.
+                    taskNum = e.target.taskNum.value;
+                }
+            }
+        }
+
+        // Copy the task list object to a new variable.
+        const myTasks = Object.assign({}, existingTasks);
+
+        // If the user has not created any tasks yet, set their task list object to an empty object.
+        if (typeof myTasks[userData.email] === "undefined") {
+            myTasks[userData.email] = {};
+        }
+
+        // Set the added, or edited, task list to the user's task list object.
+        myTasks[userData.email][taskNum] = {
+            taskName: e.target.todoTaskListName.value,
+            tasks: tasks
+        }
+
+        // Set the task list object to the modified task list object.
+        localStorage.setItem("taskList", JSON.stringify(myTasks));
+        // Tell the user we have added their task list.
+        todoTaskListError.innerText = "We have saved your To-Do List.";
+        todoTaskListError.classList.add("alert-success");
+        todoTaskListError.classList.remove("alert-danger", "d-none");
+        // Reset the task list form with the function below.
+        resetTodoTaskListForm();
+    }
+
+    /**
+     * Delete a To-Do Task List from the task list object.
+     *
+     * @param {object} e
+     */
+    const deleteTaskList = (e) => {
+        // Set the event target to t
+        const t = e.target;
+
+        // If the target event has the class taskDeleteButton, then the user likely wanted to delete the respective To-Do Task List.
+        if (t.classList.contains("taskDeleteButton")) {
+            // Grab the taskList object from storage. Normally, this would be from a database.
+            const taskList = JSON.parse(localStorage.getItem("taskList"));
+            // Find the parent container for the selected To-Do Task List.
+            const container = t.closest(".list-group-item");
+            // Remove the element from the page.
+            container.remove();
+
+            // Grab the ID from the string ID stored in the button (in format del-####).
+            const id = t.id.substring(4, t.id.length);
+            // Delete the task list from the task list object.
+            delete taskList[userData.email][id];
+            // Updated the task list object with the deleted entry.
+            localStorage.setItem("taskList", JSON.stringify(taskList));
+
+            // Check to see if the user has deleted all of their To-Do Task Lists.
+            if (Object.keys(taskList[userData.email]).length === 0) {
+                // Show a message if the user has no more task lists.
+                todoTaskListContainer.innerHTML = "<p>You currently do not have any To-Do Lists made. Create one now!</p>"
+            }
+        }
+    }
+
+    /**
+     * Reset the To-Do Task List form
+     */
+    const resetTodoTaskListForm = () => {
+        // Loop through the delete buttons to invoke the deleteTaskItem function in order to actually delete each task input.
+        for (const delButton of taskItemContainer.getElementsByClassName("deleteTaskItem")) {
+            // Use setTimeout to avoid not deleting all of the task input nodes.
+            setTimeout(() => {
+                deleteTaskItem(delButton);
+            }, 100);
+        }
+
+        for (const i of todoTaskForm) {
+            i.classList.remove("is-valid", "is-invalid");
+        }
+
+        // Reset the remaining form elements.
+        todoTaskForm.reset();
+        taskItemNum = 0;
+    }
+
+    /**
+     * Handle the submittal of the settings form.
+     *
+     * @param {object} e Settings form node
+     */
+    const doSettings = (e) => {
+        // Set the form to a re-useable variable.
+        const t = e.target;
+        // Validate the form elements.
+        const settings = doValidation(e.target);
+        // Set a continue value to true that can be changed to false after checking a few things.
+        let contSettings = true;
+        // Rset the settings form error div.
+        settingsError.classList.add("d-none", "alert-danger");
+        settingsError.classList.remove("alert-info", "alert-success");
+        settingsError.innerText = "";
+
+        // If the form elements all passed validation checks, continue. Errors will be displayed by default.
+        if (settings) {
+            // Set a variable to the user's old email from the userData object.
+            const oldEmail = userData.email;
+            // Capture the email entered on the form.
+            const email = t.email.value;
+            // Grab the user object from storage.
+            const existingUsers = JSON.parse(localStorage.getItem("users"));
+
+            // If the user object exists, continue.
+            if (existingUsers) {
+                // If the user object does not contain the object for the user with the old email, return false. This should always be true though
+                // because we have no way to delete users in this application, unless the user deletes their localstorage while logged in.
+                if ((existingUsers[oldEmail] === null) || (typeof existingUsers[oldEmail] === "undefined")) {
+                    contSettings = false;
+                }
+            }
+
+            // Continue if the user object for the old email is found.
+            if (contSettings) {
+                // Copy the user object to a new variable
+                const user = Object.assign({}, existingUsers);
+                // Set the user's object in the user object to the values from the settings form
+                user[email] = {
+                    firstName: t.firstName.value,
+                    lastName: t.lastName.value,
+                    email: email,
+                    password: t.password.value
+                };
+
+                // Compare the old user object against the new user object for the current user to check for changes. Continue with
+                // changing the settings if the two are different.
+                if (JSON.stringify(user[email]) !== JSON.stringify(existingUsers[oldEmail])) {
+                    // Set a variable for being able to change emails to true initially.
+                    let canChangeEmail = true;
+
+                    // Check if the email entered on the form is different from their old email.
+                    if (email !== oldEmail) {
+                        // Loop through the users in the user object to see if the email they want to change to is available.
+                        for (const loopedUser in existingUsers) {
+                            // If the email the user wants exists already, set a variable to false to display the correct message.
+                            if (email === loopedUser) {
+                                canChangeEmail = false;
+                            }
+                        }
+
+                        // If the user is able to use a new email, update some info.
+                        if (canChangeEmail) {
+                            // Delete the old user object.
+                            delete user[oldEmail];
+                            // Grab the task list object from storage.
+                            const taskList = JSON.parse(localStorage.getItem("taskList"));
+
+                            // If the user has created task lists at some point, update the task list object.
+                            if ((typeof taskList[oldEmail] !== "undefined")) {
+                                // Copy the old user task list object to the new email.
+                                taskList[email] = taskList[oldEmail];
+                                // Delete the old user task list object.
+                                delete taskList[oldEmail];
+                                // Update the task list object in storage.
+                                localStorage.setItem("taskList", JSON.stringify(taskList));
+                            }
+                        }
+                    }
+
+                    // If the user can change their email, or by default, continue.
+                    if (canChangeEmail) {
+                        // Update the user object in storage.
+                        localStorage.setItem("users", JSON.stringify(user));
+                        // Set the userData to the new user object for the current user.
+                        userData = user[email];
+
+                        // Alert the user that their settings have changed.
+                        settingsError.classList.add("alert-success");
+                        settingsError.classList.remove("alert-danger", "d-none");
+                        settingsError.innerText = "We have updated your settings";
+
+                        // Loop through the settings form and remove validation styling.
+                        for (const i of t) {
+                            i.classList.remove("is-valid", "is-invalid");
+                        }
+                    } else {
+                        // Display a message to the user if the email they wanted to change to is already in use.
+                        settingsError.classList.remove("d-none");
+                        settingsError.innerText = "That email is already in use";
+                    }
+                } else {
+                    // Display a message to the user if they have not changed any settings.
+                    settingsError.classList.add("alert-info");
+                    settingsError.classList.remove("alert-danger", "d-none");
+                    settingsError.innerText = "You have not changed any setting";
+                }
+            } else {
+                // Display an error to the user that their account doesn't exist.
+                settingsError.classList.remove("d-none");
+                settingsError.innerText = "We couldn't find your account.";
+            }
+        }
+    }
+
+    /**
+     * Validate a form input element on change (blur), or when a form is submitted.
+     *
+     * @param {object} inputs Can be a full form or an individual form input node.
+     */
+    const doValidation = (inputs) => {
+        // Set the return to true so that it only has to be set to false once to return false.
+        let cont = true;
+
+        // If the type of the inputs object is change, then it is a single form input node that has been triggered
+        // by the form change listen event. Otherwise, it is a form submit event.
+        if (inputs.type === "change") {
+            // Ignore validation for the login form because when the form is submitted, it will take care of checking the values. We don't
+            // need to validate the login form values when the form element is changed. Did not set up form validation for the To-Do Task List form.
+            if (inputs.target.form.id !== "loginForm") {
+                validateInputs(inputs.target);
+            }
+        } else {
+            // Loop through the form inputs.
+            for (const input of inputs) {
+                // Validate the individual form element to check for errors.
+                const error = validateInputs(input);
+
+                // If the form element has errors, then the function will return false to indicate this.
+                if (error) {
+                    cont = false;
+                }
+            }
+        }
+
+        // Return true / false based on if all of the inputs have passed validation.
+        return cont;
+    }
+
+    /**
+     * Validate form input nodes
+     *
+     * @param {object} formItem Form input node to validate
+     */
+    const validateInputs = (formItem) => {
+        // Set the function return initially to false
+        let errors = false;
+        let errorText;
+        let nodeID = formItem.id;
+
+        // Following IF statement is used for the To-Do Task List form since it works differently than other forms.
+        if ((formItem.classList.contains("taskItem")) || formItem.classList.contains("taskItemDone")) {
+            // If the form element is a checkbox, skip validation as it's not needed.
+            if (formItem.type === "checkbox") {
+                return;
+            }
+
+            // If the form element's ID is blank (which is all added elements), then set the errorText to the proper node.
+            if (nodeID === "") {
+                errorText = app.querySelector("#task-" + formItem.dataset.tasknum);
+                nodeID = "taskItem";
+            }
+        }
+
+        // Set a variable to the length of the form input value.
+        const iLength = formItem.value.length;
+
+        if (typeof errorText === "undefined") {
+            // Grab the form input's ID to grab it's respective error div.
+            errorText = app.querySelector("#" + nodeID + "Error");
+        }
+
+        // Do nothing if the input is the submit button
+        if (formItem.type !== "submit") {
+            // Set item to the object from the validation rules based on the form input's ID. This object contains
+            // all of the validation rules for the form input to be checked. Aliases are also used for items
+            // that utilize the same data as other inputs for validation.
+            const item = validationRules[nodeID] || validationRules[validationRules.alias[nodeID]];
+            // Remove the form input's validation classes in case it has any.
+            formItem.classList.remove("is-invalid", "is-valid");
+            // Reset the form input's error div.
+            errorText.innerText = "";
+            errorText.classList.remove("d-block");
+
+            // item.text grabs the form input's error text
+            // Same for item.min.text and item.max.text. We use the object to grab the respective
+            if (formItem.type === "checkbox") {
+                // Make all check boxes required to be checked
+                if (!formItem.checked) {
+                    errorText.innerText = item.text;
+                    errors = true;
+                }
+            } else if (formItem.type === "email") {
+                // Email regex, can use others though.
+                const regex = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum)\b/;
+
+                // Show an error if the email does not meet the regex requirements.
+                if (!regex.test(formItem.value)) {
+                    errorText.innerText = item.text;
+                    errors = true;
+                }
+            } else {
+                // We can put more validation rule checks here, but min and max length are the only ones for now.
+
+                // Check the min length and then the max length. Error if either one fails.
+                if (item.min.value > iLength) {
+                    errorText.innerText = item.min.text;
+                    errors = true;
+                } else if (item.max.value < iLength) {
+                    errorText.innerText = item.max.text;
+                    errors = true;
+                }
+            }
+        }
+
+        if (errors) {
+            // Style the form input to show it is in error.
+            formItem.classList.add("is-invalid");
+            // Show the form input's error div.
+            errorText.classList.add("d-block");
+            // Return true to indicate the form input has errors.
+            return true;
+        } else {
+            // Style the form input to show it is valid.
+            formItem.classList.add("is-valid");
+            // Return false to indicate the form input is valid based on our rules.
+            return false;
+        }
+    }
+
+    /**
+     * Direct the application to the proper form submit function based on which form was submitted.
+     *
+     * @param {object} e Form submit event
+     */
+    const doFormActions = (e) => {
+        // Prevent form submit.
+        e.preventDefault();
+        // Set id of the form to re-usable variable
+        const id = e.target.id;
+
+        // Send the application to the right form submit function.
+        if (id === "loginForm") {
+            doLogin(e);
+        } else if (id === "registerForm") {
+            doRegister(e);
+        } else if (id === "todoTaskForm") {
+            savetodoTaskList(e);
+        } else if (id === "settingsForm") {
+            doSettings(e);
+        }
+    }
+
+    // DOM References
+    const app = document.getElementById("app");
+    const navbar = document.getElementById("navbar");
+    const guestPage = document.getElementsByClassName("guestPage");
+    const userPage = document.getElementsByClassName("userPage");
+    const guestButtons = document.getElementsByClassName("guestButton");
+    const userButtons = document.getElementsByClassName("userButton");
+    const dashboardButton = document.getElementById("dashboardPage");
+    const dashboardPage = document.getElementById("dashboard");
+    const loginError = document.getElementById("loginError");
+    const registerError = document.getElementById("registerError");
+    const settingsError = document.getElementById("settingsError");
+    const createtodoTaskListButton = document.getElementById("todoTaskListPage");
+    const todoTaskListContainer = document.getElementById("todoTaskListContainer");
+    const todoTaskListHeader = document.getElementById("todoTaskListHeader");
+    const addTaskItemButton = document.getElementById("addTaskItemButton");
+    const todoTaskForm = document.getElementById("todoTaskForm");
+    const todoTaskListError = document.getElementById("todoTaskListError");
+    const taskItemContainer = document.getElementById("taskItemContainer");
+
+    // Event listeners
+    navbar.addEventListener("click", changeScreen);
+    app.addEventListener("submit", doFormActions);
+    app.addEventListener("change", doValidation);
+    dashboardPage.addEventListener("click", deleteTaskList);
+    todoTaskListContainer.addEventListener("click", changeScreen);
+    createtodoTaskListButton.addEventListener("click", changeScreen);
+    todoTaskForm.addEventListener("click", deleteTaskItem);
+    addTaskItemButton.addEventListener("click", addTaskItemToContainer);
+}
+
+// Useful data to the application.
+const appLogo = "ES6";
+const errorDivClasses = ["alert", "alert-danger", "d-none"];
+const submitButtonClasses = ["btn", "btn-lg", "btn-custom", "btn-block"];
+const inputContainerClass = "form-label-group";
+const checkBoxContainerClasses = ["checkbox", "mb-3", "form-group"];
+const checkboxChildClass = "form-check";
+const checkboxLabelClass = "form-check-label";
+const inputErrorClass = "invalid-feedback";
+const taskButtonContainerClasses = ["lead", "pb-0", "pt-3", "text-center"];
+const taskButtonClasses = ["btn", "btn-custom", "userButton", "d-none"];
+
+/**
+ * Load the application content from a JSON file to setup the application.
+ */
+const loadAppData = async () => {
+    // Fetch the app data json file and wait for it to return.
+    const response = await fetch(projectDataURL);
+    // Set a global variable to the json result.
+    appData = await response.json();
+}
+
+/**
+ *
+ */
+const loadNavbar = () => {
+    const navbarData = appData.navbarItems
+    const navItems = navbarData.buttons;
+    const navDiv = document.createElement("div");
+    const nav = document.createElement("nav");
+    const mItemClass = "p-3 py-4";
+    let navData = "";
+
+    for (const mItem in navItems) {
+        const cItem = navItems[mItem];
+        navData += `<a id="${mItem}" class="${mItemClass} ${cItem.class}" href="${cItem.href}">${cItem.text}</a>`;
+    }
+
+    for (const navStyle of navbarData.classes) {
+        navDiv.classList.add(navStyle);
+    }
+
+    for (const navStyle of navbarData.nav.classes) {
+        nav.classList.add(navStyle);
+    }
+
+    nav.id = navbarData.nav.id;
+    nav.innerHTML = navData;
+    navDiv.innerHTML = `<h5 class="my-0 mr-md-auto font-weight-normal">${appLogo}</h5>`;
+    navDiv.appendChild(nav);
+    app.prepend(navDiv);
+}
+
+const loadPage = async (p, hasForm = false) => {
+    const page = appData[p];
+    const pageDiv = document.createElement("div");
+    const childDiv = document.createElement("div");
+    const titleH1 = document.createElement("div");
+    const hr = document.createElement("hr");
+
+    for (const divStyle of page.classes) {
+        pageDiv.classList.add(divStyle);
+    }
+
+    for (const divStyle of page.child.classes) {
+        childDiv.classList.add(divStyle);
+    }
+
+    for (const titleStyle of page.title.classes) {
+        titleH1.classList.add(titleStyle);
+    }
+
+    pageDiv.id = p;
+    titleH1.id = page.title.id;
+    titleH1.innerText = page.title.name;
+
+    childDiv.appendChild(titleH1);
+
+    if ((p === "dashboard") || (p === "todoTaskList")) {
+        childDiv.appendChild(addButton(page.button.id, page.button.text, taskButtonContainerClasses, taskButtonClasses));
+    }
+
+    childDiv.appendChild(hr);
+
+    if (p === "intro") {
+        childDiv.appendChild(introData());
+    } else if (p === "dashboard") {
+        childDiv.appendChild(dashboardData());
+    }
+
+    if (hasForm) {
+        childDiv.appendChild(loadForm(page));
+    }
+
+    pageDiv.appendChild(childDiv);
+    app.appendChild(pageDiv);
+}
+
+const loadForm = (page) => {
+    const form = document.createElement("form");
+    const errorDiv = document.createElement("div");
+    const submit = document.createElement("button");
+
+    for (const errorStyle of errorDivClasses) {
+        errorDiv.classList.add(errorStyle);
+    }
+
+    for (const buttonStyle of submitButtonClasses) {
+        submit.classList.add(buttonStyle);
+    }
+
+    if (page.submit.classes) {
+        for (const buttonStyle of page.submit.classes) {
+            submit.classList.add(buttonStyle);
+        }
+    }
+
+    for (const formStyle of page.form.classes) {
+        form.classList.add(formStyle);
+    }
+
+    form.id = page.form.id;
+    errorDiv.id = page.form.error;
+    errorDiv.setAttribute("role", "alert");
+    form.appendChild(errorDiv);
+    submit.type = "Submit";
+    submit.innerText = page.submit.text;
+
+    for (const input of page.inputs) {
+        let parentContainer;
+
+        if (input.type === "hidden") {
+            const inputField = document.createElement("input");
+            inputField.id = input.id;
+            inputField.type = input.type;
+            inputField.value = input.value;
+            inputField.required = input.required;
+            parentContainer = inputField;
+        } else {
+            const inputContainer = document.createElement("div");
+            const inputChild = document.createElement("div");
+            const inputField = document.createElement("input");
+            const inputLabel = document.createElement("label");
+            const inputError = document.createElement("div");
+
+            inputField.type = input.type;
+            inputField.id = input.id;
+            inputField.required = input.required;
+            inputField.classList.add(input.class);
+            inputField.setAttribute("placeholder", input.label);
+            inputLabel.htmlFor = input.id;
+            inputLabel.innerText = input.label;
+
+            if (input.type !== "checkbox") {
+                parentContainer = inputContainer;
+                inputContainer.classList.add(inputContainerClass);
+            } else {
+                parentContainer = inputChild;
+                inputChild.classList.add(checkboxChildClass);
+                inputLabel.classList.add(checkboxLabelClass);
+
+                for (const contClasses of checkBoxContainerClasses) {
+                    inputContainer.classList.add(contClasses);
+                }
+            }
+
+            parentContainer.appendChild(inputField);
+            parentContainer.appendChild(inputLabel);
+
+            if (input.error) {
+                inputError.classList.add(inputErrorClass);
+                inputError.id = input.error;
+                parentContainer.appendChild(inputError);
+            }
+
+            if (input.type === "checkbox") {
+                inputContainer.appendChild(parentContainer);
+                parentContainer = inputContainer;
+            }
+        }
+
+        form.appendChild(parentContainer);
+    }
+
+    if (page.form.id === "todoTaskForm") {
+        form.appendChild(insertTodoTaskList());
+    }
+
+    form.appendChild(submit);
+    return form;
+}
+
+/**
+ * Return the content needed to display the intro page.
+ */
+const introData = () => {
+    // Create a paragraph tag that will display content to the user.
+    const lead = document.createElement("p");
+    // Add the required class to the paragraph tag.
+    lead.classList.add("lead");
+    // Set the content of the paragraph tag.
+    lead.innerHTML =
+        `This is a single page To-Do application that uses HTML, CSS, and JavaScript with no libraries, except for Bootstrap 4 and Font Awesome 5 (CSS ONLY).
+        The application stores user login information with localStorage. This application demostrates the ability to utilize JavaScript to manipulate the DOM and
+        to execute actions when events occur. <b>Note:</b> The way this page is designed to have the content vertically centered is <b>NOT</b> designed
+        for applications with a lot of content as the content would be cut off due to the CSS settings.`;
+
+    // Return the paragraph node.
+    return lead;
+}
+
+/**
+ * Return the content needed to display the dashboard page.
+ */
+const dashboardData = () => {
+    // Create a UL element that will hold the user's To-Do Task Lists.
+    const ul = document.createElement("ul");
+    // Add the UL's attributes.
+    ul.classList.add("list-group");
+    ul.id = "todoTaskListContainer";
+    // Return the UL node.
+    return ul;
+}
+
+// Return the node to
+const insertTodoTaskList = () => {
+    // Create a div that will hold the task list form's inputs.
+    const tasksContainer = document.createElement("div");
+    // Set the div's attributes.
+    tasksContainer.id = "taskItemContainer";
+    // Add the required first task for creating / editing a To-Do Task List.
+    tasksContainer.appendChild(addTaskItem("", "", 0, "noDeleteTask", "requiredTaskDone", "requiredTask", true, "requiredTaskError"));
+    // Return the To-Do Task List container.
+    return tasksContainer;
 }
 
 /**
@@ -512,502 +1223,151 @@ const displayTaskListItems = (id) => {
  * @param {string} taskDone String of empty string or 'checked' so indicate task completion.
  * @param {string} taskValue Value of the task item. Empty by default.
  * @param {number} taskNum Value of the task item index.
+ * @param {string} newItemID ID value for the form element's container.
+ * @param {string} checkboxID ID value for the task done checkbox.
+ * @param {string} inputID ID value for the form input.
+ * @param {boolean} required Boolean to indicate whether the form inputs are required.
+ * @param {string} errorID ID of the error div for the form input.
+ *
  */
-const addTaskItem = (taskDone = "", taskValue = "", taskNum = "") => {
+const addTaskItem = (...args) => {
+    // Setup the variables for the function based on their order.
+    let taskDone = args[0];
+    let taskValue = args[1];
+    let taskNum = parseInt(args[2]);
+    let newItemID = args[3];
+    let checkboxID = args[4];
+    let inputID = args[5];
+    let isRequired = "";
+    let errorID;
+
+    // Set the following variables to a default empty string if it was not passed to the function.
+    if (typeof taskDone === "undefined") {
+        taskDone = "";
+    }
+
+    if (typeof taskValue === "undefined") {
+        taskValue = "";
+    }
+
+    if (typeof newItemID === "undefined") {
+        newItemID = "";
+    }
+
+    if (typeof checkboxID === "undefined") {
+        checkboxID = "";
+    }
+
+    if (typeof inputID === "undefined") {
+        inputID = "";
+    }
+
     // If we're adding a new element with the button and not because the function is being called by the view task function,
     // then we want to grab the current highest taskItemNum from the form and use that + 1 for the new form element.
     if (taskValue === "") {
-        taskNum = parseInt(taskItemNum.value) + 1;
+        if (taskNum !== 0) {
+            taskNum = taskItemNum + 1;
+        }
+    }
+
+    // Set the task done to required if it needs to be (only used for the first item in the task list).
+    if (args[6]) {
+        isRequired = "required";
+    }
+
+    // Check to see if the function was passed an argument for the value of the error div ID.
+    if (args[7]) {
+        // Set the error div ID to the passed argument.
+        errorID = args[7];
+    } else {
+        // Otherwise, set it to the following format.
+        errorID = `task-${taskNum}`;
     }
 
     // Create a new page element.
     const newItem = document.createElement("div");
     // Add the required class to the new element.
     newItem.classList.add("list-group");
+    // Add the id to the new element, if it should have one.
+    newItem.id = newItemID;
     // Set the HTML of new element to the required HTML.
     newItem.innerHTML =
-        "<div class='input-group'>" +
-        "   <div class='input-group-prepend'>" +
-        "       <div class='input-group-text'>" +
-        "           <input type='checkbox' class='taskItemDone' " + taskDone + " />" +
-        "       </div>" +
-        "   </div>" +
-        "   <input type='text' class='form-control taskItem' placeholder='Task' value='" + taskValue + "' data-taskNum='" + taskNum + "' />" +
-        "   <div class='input-group-append'>" +
-        "       <div class='input-group-text'>" +
-        "           <button type='button' class='btn btn-danger deleteTaskItem'><i class='far fa-trash-alt'></i></button>" +
-        "       </div>" +
-        "   </div>" +
-        "</div>" +
-        "<div id='task-" + taskNum + "' class='invalid-feedback'></div>";
+        `<div class='input-group'>
+           <div class='input-group-prepend'>
+               <div class='input-group-text'>
+                   <input id='${checkboxID}' type='checkbox' class='taskItemDone' ${taskDone} />
+               </div>
+           </div>
+           <input type='text' id='${inputID}' class='form-control taskItem' placeholder='Task' value='${taskValue}' data-taskNum='${taskNum}' ${isRequired} />
+           <div class='input-group-append'>
+               <div class='input-group-text'>
+                   <button type='button' class='btn btn-danger deleteTaskItem'><i class='far fa-trash-alt'></i></button>
+               </div>
+           </div>
+        </div>
+        <div id='${errorID}' class='invalid-feedback'></div>`;
 
     // Update the taskItemNum to the new value.
-    taskItemNum.value = taskNum;
+    taskItemNum = taskNum;
 
-    // Append the new element to the task form.
-    taskItemContainer.appendChild(newItem);
     // Set focus to the newly created input.
     newItem.querySelector(".taskItem").focus();
+
+    return newItem;
 }
 
 /**
- * Function deletes a task input node. Can either be invoked through clicking the deleteTaskItem button for an input, or through looping each delete button
- * which is done on form save or page change.
+ * Return a button to the calling function through a parent div node.
  *
- * @param {object} e Task Input Node to be deleted
+ * @param {string} id ID of the button.
+ * @param {string} text Text for the button.
+ * @param {array} leadClasses Class array for the button container.
+ * @param {array} buttonClasses Class array for the button.
  */
-const deleteTaskItem = (e) => {
-    // The function can be invoked with a form element or a button, so set the target here that we'll set with an IF statement below.
-    let t;
+const addButton = (id, text, leadClasses, buttonClasses) => {
+    // Create the required elements.
+    const lead = document.createElement("div");
+    const addButton = document.createElement("button");
 
-    // If the node that invoked the function was a form, classlist will be undefined. Set the target to 'e' for when button nodes
-    // invoke the function, otherwise set it it to e.target for forms.
-    if (typeof e.classList !== "undefined") {
-        t = e;
-    } else {
-        t = e.target;
+    // Set the attributes of the button.
+    addButton.id = id;
+    addButton.type = "button";
+    addButton.innerText = text;
+
+    // Loop through the button's container classes and add them.
+    for (const leadClass of leadClasses) {
+        lead.classList.add(leadClass);
     }
 
-    // Check if the node that triggered the function has the deleteTaskItem or trash can 'fa' icon. This means the user wanted to
-    // remove the task item from the form.
-    if (t.classList.contains("deleteTaskItem") || t.classList.contains("fa-trash-alt")) {
-        // Find the task item's parent container.
-        const container = t.closest(".list-group");
-
-        // If the container is not the required one for the form, remove it from the page.
-        if (container.id !== "noDeleteTask") {
-            // Decrease task item counter by 1 for form validation purposes.
-            taskItemNum.value--;
-            container.remove();
-        }
+    // Loop through the button's classes and add them.
+    for (const buttonClass of buttonClasses) {
+        addButton.classList.add(buttonClass);
     }
+
+    // Add the button to it's container.
+    lead.appendChild(addButton);
+
+    // Return the container node.
+    return lead;
 }
 
 /**
- * Handles the actions for when the To-Do Task List form is submitted.
- *
- * @param {object} e Form node
+ * Load the application content and then allow the application to start using its functions.
  */
-const saveTodoList = (e) => {
-    // Set the target element to a re-usable variable
-    const t = e.target;
-    // Set the task list to an empty array.
-    const tasks = [];
-    // Set a counter for the task items.
-    let count = 0;
+const loadHTML = async () => {
+    // Load all of the application content first.
+    await loadAppData();
+    await loadNavbar();
+    await loadPage("intro");
+    await loadPage("login", true);
+    await loadPage("register", true);
+    await loadPage("dashboard");
+    await loadPage("todoTaskList", true);
+    await loadPage("settings", true);
 
-    // Grab all of the task items and the checkbox that indicates if a task is done
-    const taskItems = taskItemContainer.getElementsByClassName("taskItem");
-    const taskDone = taskItemContainer.getElementsByClassName("taskItemDone");
-
-    // Loop through the form elements.
-    for (const i of t) {
-        // If the element has the class taskItem, add it to the tasks array
-        if (i.classList.contains("taskItem")) {
-            // Add the current (based on count) task to the task array. This will only run for form elements that have
-            // the taskItem class, so this will not capture invalid data, and we can use the index of the taskItems and
-            // taskDone objects because of this.
-            tasks.push({
-                done: taskDone[count].checked,
-                task: taskItems[count].value
-            });
-
-            // Increment the task counter
-            count++;
-        }
-    }
-
-    // Grab the taskList object from storage. Normally, this would be from a database.
-    const existingTasks = JSON.parse(localStorage.getItem("taskList"));
-
-    // If there are no tasks, allow creation.
-    if (existingTasks === null) {
-        taskNum = 1;
-    } else {
-        // If the user has not created any task lists yet, set the index of the task list to 1.
-        if (typeof existingTasks[userData.email] === "undefined") {
-            taskNum = 1;
-        } else {
-            // If we're adding a task list, we want to get the number of task lists the user has created, from the
-            // task list object, and add one to create the new task list.
-            if (e.target.taskNum.value == 0) {
-                taskNum = Object.keys(existingTasks[userData.email]).length + 1;
-            } else {
-                // If we're editing a task list, we want to grab the task list's index.
-                taskNum = e.target.taskNum.value;
-            }
-        }
-    }
-
-    // Copy the task list object to a new variable.
-    const myTasks = Object.assign({}, existingTasks);
-
-    // If the user has not created any tasks yet, set their task list object to an empty object.
-    if (typeof myTasks[userData.email] === "undefined") {
-        myTasks[userData.email] = {};
-    }
-
-    // Set the added, or edited, task list to the user's task list object.
-    myTasks[userData.email][taskNum] = {
-        taskName: e.target.todoListName.value,
-        tasks: tasks
-    }
-
-    // Set the task list object to the modified task list object.
-    localStorage.setItem("taskList", JSON.stringify(myTasks));
-    // Tell the user we have added their task list.
-    todoListError.innerText = "We have saved your To-Do List.";
-    todoListError.classList.add("alert-success");
-    todoListError.classList.remove("alert-danger", "d-none");
-    // Reset the task list form with the function below.
-    resetTodoListForm();
+    // Then give the application access to use its usage functions.
+    startApp();
 }
 
-/**
- * Delete a To-Do Task List from the task list object.
- *
- * @param {object} e
- */
-const deleteTaskList = (e) => {
-    // Set the event target to t
-    const t = e.target;
-
-    // If the target event has the class taskDeleteButton, then the user likely wanted to delete the respective To-Do Task List.
-    if (t.classList.contains("taskDeleteButton")) {
-        // Grab the taskList object from storage. Normally, this would be from a database.
-        const taskList = JSON.parse(localStorage.getItem("taskList"));
-        // Find the parent container for the selected To-Do Task List.
-        const container = t.closest(".list-group-item");
-        // Remove the element from the page.
-        container.remove();
-
-        // Grab the ID from the string ID stored in the button (in format del-####).
-        const id = t.id.substring(4, t.id.length);
-        // Delete the task list from the task list object.
-        delete taskList[userData.email][id];
-        // Updated the task list object with the deleted entry.
-        localStorage.setItem("taskList", JSON.stringify(taskList));
-
-        // Check to see if the user has deleted all of their To-Do Task Lists.
-        if (Object.keys(taskList[userData.email]).length === 0) {
-            // Show a message if the user has no more task lists.
-            todoListContainer.innerHTML = "<p>You currently do not have any To-Do Lists made. Create one now!</p>"
-        }
-    }
-}
-
-/**
- * Reset the To-Do Task List form
- */
-const resetTodoListForm = () => {
-    // Loop through the delete buttons to invoke the deleteTaskItem function in order to actually delete each task input.
-    for (const delButton of taskItemContainer.getElementsByClassName("deleteTaskItem")) {
-        // Use setTimeout to avoid not deleting all of the task input nodes.
-        setTimeout(() => {
-            deleteTaskItem(delButton);
-        }, 100);
-    }
-
-    for (const i of todoTaskForm) {
-        i.classList.remove("is-valid", "is-invalid");
-    }
-
-    // Reset the remaining form elements.
-    todoTaskForm.reset();
-}
-
-/**
- * Handle the submittal of the settings form.
- *
- * @param {object} e Settings form node
- */
-const doSettings = (e) => {
-    // Set the form to a re-useable variable.
-    const t = e.target;
-    // Validate the form elements.
-    const settings = doValidation(e.target);
-    // Set a continue value to true that can be changed to false after checking a few things.
-    let contSettings = true;
-    // Rset the settings form error div.
-    settingsError.classList.add("d-none", "alert-danger");
-    settingsError.classList.remove("alert-info", "alert-success");
-    settingsError.innerText = "";
-
-    // If the form elements all passed validation checks, continue. Errors will be displayed by default.
-    if (settings) {
-        // Set a variable to the user's old email from the userData object.
-        const oldEmail = userData.email;
-        // Capture the email entered on the form.
-        const email = t.email.value;
-        // Grab the user object from storage.
-        const existingUsers = JSON.parse(localStorage.getItem("users"));
-
-        // If the user object exists, continue.
-        if (existingUsers) {
-            // If the user object does not contain the object for the user with the old email, return false. This should always be true though
-            // because we have no way to delete users in this application, unless the user deletes their localstorage while logged in.
-            if ((existingUsers[oldEmail] === null) || (typeof existingUsers[oldEmail] === "undefined")) {
-                contSettings = false;
-            }
-        }
-
-        // Continue if the user object for the old email is found.
-        if (contSettings) {
-            // Copy the user object to a new variable
-            const user = Object.assign({}, existingUsers);
-            // Set the user's object in the user object to the values from the settings form
-            user[email] = {
-                firstName: t.firstName.value,
-                lastName: t.lastName.value,
-                email: email,
-                password: t.password.value
-            };
-
-            // Compare the old user object against the new user object for the current user to check for changes. Continue with
-            // changing the settings if the two are different.
-            if (JSON.stringify(user[email]) !== JSON.stringify(existingUsers[oldEmail])) {
-                // Set a variable for being able to change emails to true initially.
-                let canChangeEmail = true;
-
-                // Check if the email entered on the form is different from their old email.
-                if (email !== oldEmail) {
-                    // Loop through the users in the user object to see if the email they want to change to is available.
-                    for (const loopedUser in existingUsers) {
-                        // If the email the user wants exists already, set a variable to false to display the correct message.
-                        if (email === loopedUser) {
-                            canChangeEmail = false;
-                        }
-                    }
-
-                    // If the user is able to use a new email, update some info.
-                    if (canChangeEmail) {
-                        // Delete the old user object.
-                        delete user[oldEmail];
-                        // Grab the task list object from storage.
-                        const taskList = JSON.parse(localStorage.getItem("taskList"));
-
-                        // If the user has created task lists at some point, update the task list object.
-                        if ((typeof taskList[oldEmail] !== "undefined")) {
-                            // Copy the old user task list object to the new email.
-                            taskList[email] = taskList[oldEmail];
-                            // Delete the old user task list object.
-                            delete taskList[oldEmail];
-                            // Update the task list object in storage.
-                            localStorage.setItem("taskList", JSON.stringify(taskList));
-                        }
-                    }
-                }
-
-                // If the user can change their email, or by default, continue.
-                if (canChangeEmail) {
-                    // Update the user object in storage.
-                    localStorage.setItem("users", JSON.stringify(user));
-                    // Set the userData to the new user object for the current user.
-                    userData = user[email];
-
-                    // Alert the user that their settings have changed.
-                    settingsError.classList.add("alert-success");
-                    settingsError.classList.remove("alert-danger", "d-none");
-                    settingsError.innerText = "We have updated your settings";
-
-                    // Loop through the settings form and remove validation styling.
-                    for (const i of t) {
-                        i.classList.remove("is-valid", "is-invalid");
-                    }
-                } else {
-                    // Display a message to the user if the email they wanted to change to is already in use.
-                    settingsError.classList.remove("d-none");
-                    settingsError.innerText = "That email is already in use";
-                }
-            } else {
-                // Display a message to the user if they have not changed any settings.
-                settingsError.classList.add("alert-info");
-                settingsError.classList.remove("alert-danger", "d-none");
-                settingsError.innerText = "You have not changed any setting";
-            }
-        } else {
-            // Display an error to the user that their account doesn't exist.
-            settingsError.classList.remove("d-none");
-            settingsError.innerText = "We couldn't find your account.";
-        }
-    }
-}
-
-/**
- * Validate a form input element on change (blur), or when a form is submitted.
- *
- * @param {object} inputs Can be a full form or an individual form input node.
- */
-const doValidation = (inputs) => {
-    // Set the return to true so that it only has to be set to false once to return false.
-    let cont = true;
-
-    // If the type of the inputs object is change, then it is a single form input node that has been triggered
-    // by the form change listen event. Otherwise, it is a form submit event.
-    if (inputs.type === "change") {
-        // Ignore validation for the login form because when the form is submitted, it will take care of checking the values. We don't
-        // need to validate the login form values when the form element is changed. Did not set up form validation for the To-Do Task List form.
-        if (inputs.target.form.id !== "loginForm") {
-            validateInputs(inputs.target);
-        }
-    } else {
-        // Loop through the form inputs.
-        for (const input of inputs) {
-            // Validate the individual form element to check for errors.
-            const error = validateInputs(input);
-
-            // If the form element has errors, then the function will return false to indicate this.
-            if (error) {
-                cont = false;
-            }
-        }
-    }
-
-    // Return true / false based on if all of the inputs have passed validation.
-    return cont;
-}
-
-/**
- * Validate form input nodes
- *
- * @param {object} formItem Form input node to validate
- */
-const validateInputs = (formItem) => {
-    // Set the function return initially to false
-    let errors = false;
-    let errorText;
-    let nodeID = formItem.id;
-
-    // Following IF statement is used for the To-Do Task List form since it works differently than other forms.
-    if ((formItem.classList.contains("taskItem")) || formItem.classList.contains("taskItemDone")) {
-        // If the form element is a checkbox, skip validation as it's not needed.
-        if (formItem.type === "checkbox") {
-            return;
-        }
-
-        // If the form element's ID is blank (which is all added elements), then set the errorText to the proper node.
-        if (nodeID === "") {
-            errorText = forms.querySelector("#task-" + formItem.dataset.tasknum);
-            nodeID = "taskItem";
-        }
-    }
-
-    // Set a variable to the length of the form input value.
-    const iLength = formItem.value.length;
-
-    if (typeof errorText === "undefined") {
-        // Grab the form input's ID to grab it's respective error div.
-        errorText = forms.querySelector("#" + nodeID + "Error");
-    }
-
-    // Do nothing if the input is the submit button
-    if (formItem.type !== "submit") {
-        // Set item to the object from the validation rules based on the form input's ID. This object contains
-        // all of the validation rules for the form input to be checked. Aliases are also used for items
-        // that utilize the same data as other inputs for validation.
-        const item = validationRules[nodeID] || validationRules[validationRules.alias[nodeID]];
-        // Remove the form input's validation classes in case it has any.
-        formItem.classList.remove("is-invalid", "is-valid");
-        // Reset the form input's error div.
-        errorText.innerText = "";
-        errorText.classList.remove("d-block");
-
-        // item.text grabs the form input's error text
-        // Same for item.min.text and item.max.text. We use the object to grab the respective
-        if (formItem.type === "checkbox") {
-            // Make all check boxes required to be checked
-            if (!formItem.checked) {
-                errorText.innerText = item.text;
-                errors = true;
-            }
-        } else if (formItem.type === "email") {
-            // Email regex, can use others though.
-            const regex = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum)\b/;
-
-            // Show an error if the email does not meet the regex requirements.
-            if (!regex.test(formItem.value)) {
-                errorText.innerText = item.text;
-                errors = true;
-            }
-        } else {
-            // We can put more validation rule checks here, but min and max length are the only ones for now.
-
-            // Check the min length and then the max length. Error if either one fails.
-            if (item.min.value > iLength) {
-                errorText.innerText = item.min.text;
-                errors = true;
-            } else if (item.max.value < iLength) {
-                errorText.innerText = item.max.text;
-                errors = true;
-            }
-        }
-    }
-
-    if (errors) {
-        // Style the form input to show it is in error.
-        formItem.classList.add("is-invalid");
-        // Show the form input's error div.
-        errorText.classList.add("d-block");
-        // Return true to indicate the form input has errors.
-        return true;
-    } else {
-        // Style the form input to show it is valid.
-        formItem.classList.add("is-valid");
-        // Return false to indicate the form input is valid based on our rules.
-        return false;
-    }
-}
-
-/**
- * Direct the application to the proper form submit function based on which form was submitted.
- *
- * @param {object} e Form submit event
- */
-const doFormActions = (e) => {
-    // Prevent form submit.
-    e.preventDefault();
-    // Set id of the form to re-usable variable
-    const id = e.target.id;
-
-    // Send the application to the right form submit function.
-    if (id === "loginForm") {
-        doLogin(e);
-    } else if (id === "registerForm") {
-        doRegister(e);
-    } else if (id === "todoTaskForm") {
-        saveTodoList(e);
-    } else if (id === "settingsForm") {
-        doSettings(e);
-    }
-}
-
-// DOM References
-const navbar = document.getElementById("navbar");
-const guestPage = document.getElementsByClassName("guestPage");
-const userPage = document.getElementsByClassName("userPage");
-const guestButtons = document.getElementsByClassName("guestButton");
-const userButtons = document.getElementsByClassName("userButton");
-const dashboardButton = document.getElementById("dashboardPage");
-const dashboardPage = document.getElementById("dashboard");
-const forms = document.getElementById("pageContainer");
-const loginError = document.getElementById("loginError");
-const registerError = document.getElementById("registerError");
-const todoListError = document.getElementById("todoListError");
-const settingsError = document.getElementById("settingsError");
-const createTodoListButton = document.getElementById("todoListPage");
-const todoListContainer = document.getElementById("todoListContainer");
-const todoListHeader = document.getElementById("todoListHeader");
-const todoTaskForm = document.getElementById("todoTaskForm");
-const taskItemNum = document.getElementById("taskItemNum");
-const taskItemContainer = document.getElementById("taskItemContainer");
-const addTaskItemButton = document.getElementById("addTaskItemButton");
-
-// Event listeners
-navbar.addEventListener("click", changeScreen);
-forms.addEventListener("submit", doFormActions);
-forms.addEventListener("change", doValidation);
-dashboardPage.addEventListener("click", deleteTaskList);
-todoListContainer.addEventListener("click", changeScreen);
-createTodoListButton.addEventListener("click", changeScreen);
-todoTaskForm.addEventListener("click", deleteTaskItem);
-addTaskItemButton.addEventListener("click", addTaskItem);
+// Initialize the application
+loadHTML();

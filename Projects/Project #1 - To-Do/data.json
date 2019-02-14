@@ -1,0 +1,373 @@
+{
+    "navbarItems": {
+        "nav": {
+            "id": "navbar",
+            "classes": [
+                "my-2",
+                "my-md-0",
+                "mr-md-3"
+            ]
+        },
+        "buttons": {
+            "github": {
+                "href": "https://www.github.com/engineertdog/ES6-Course",
+                "text": "Github"
+            },
+            "infoPage": {
+                "href": "#",
+                "text": "App Info",
+                "class": "guestButton"
+            },
+            "loginUser": {
+                "href": "#",
+                "text": "Login",
+                "class": "guestButton"
+            },
+            "registerUser": {
+                "href": "#",
+                "text": "Register",
+                "class": "guestButton"
+            },
+            "dashboardPage": {
+                "href": "#",
+                "text": "To-Do List",
+                "class": "userButton d-none"
+            },
+            "settingsPage": {
+                "href": "#",
+                "text": "Settings",
+                "class": "userButton d-none"
+            },
+            "logoutButton": {
+                "href": "#",
+                "text": "Logout",
+                "class": "userButton d-none"
+            }
+        },
+        "classes": [
+            "d-flex",
+            "flex-column",
+            "flex-md-row",
+            "align-items-center",
+            "p-4",
+            "px-md-4",
+            "mb-3",
+            "bg-custom",
+            "nav-custom",
+            "border-bottom",
+            "box-shadow",
+            "fixed-top"
+        ]
+    },
+    "intro": {
+        "classes": [
+            "container",
+            "h-100",
+            "guestPage",
+            "infoPage"
+        ],
+        "child": {
+            "classes": [
+                "text-center",
+                "mx-auto",
+                "d-flex",
+                "justify-content-center",
+                "flex-column",
+                "h-100"
+            ]
+        },
+        "title": {
+            "name": "To-Do Application",
+            "classes": [
+                "display-4"
+            ]
+        }
+    },
+    "login": {
+        "classes": [
+            "container",
+            "h-100",
+            "guestPage",
+            "loginUser",
+            "d-none"
+        ],
+        "child": {
+            "classes": [
+                "mx-auto",
+                "d-flex",
+                "justify-content-center",
+                "flex-column",
+                "h-100"
+            ]
+        },
+        "title": {
+            "name": "Login",
+            "classes": [
+                "display-4",
+                "text-center"
+            ]
+        },
+        "form": {
+            "id": "loginForm",
+            "error": "loginError",
+            "classes": [
+                "form",
+                "form-limited-width"
+            ]
+        },
+        "submit": {
+            "text": "Sign in"
+        },
+        "inputs": [
+            {
+                "type": "email",
+                "id": "loginEmail",
+                "class": "form-control",
+                "label": "Email Address",
+                "required": true
+            },
+            {
+                "type": "password",
+                "id": "loginPassword",
+                "class": "form-control",
+                "label": "Password",
+                "required": true
+            }
+        ]
+    },
+    "register": {
+        "classes": [
+            "container",
+            "h-100",
+            "guestPage",
+            "registerUser",
+            "d-none"
+        ],
+        "child": {
+            "classes": [
+                "mx-auto",
+                "d-flex",
+                "justify-content-center",
+                "flex-column",
+                "h-100"
+            ]
+        },
+        "title": {
+            "name": "Register",
+            "classes": [
+                "display-4",
+                "text-center"
+            ]
+        },
+        "form": {
+            "id": "registerForm",
+            "error": "registerError",
+            "classes": [
+                "form",
+                "form-limited-width"
+            ]
+        },
+        "submit": {
+            "text": "Register"
+        },
+        "inputs": [
+            {
+                "type": "text",
+                "id": "registerFirstName",
+                "class": "form-control",
+                "label": "First name",
+                "error": "registerFirstNameError",
+                "required": true
+            },
+            {
+                "type": "text",
+                "id": "registerLastName",
+                "class": "form-control",
+                "label": "Last name",
+                "error": "registerLastNameError",
+                "required": true
+            },
+            {
+                "type": "email",
+                "id": "registerEmail",
+                "class": "form-control",
+                "label": "Email address",
+                "error": "registerEmailError",
+                "required": true
+            },
+            {
+                "type": "password",
+                "id": "registerPassword",
+                "class": "form-control",
+                "label": "Password",
+                "error": "registerPasswordError",
+                "required": true
+            },
+            {
+                "type": "checkbox",
+                "id": "registerTerms",
+                "class": "form-check-input",
+                "label": "Agree to terms and conditions",
+                "error": "registerTermsError",
+                "required": true
+            }
+        ]
+    },
+    "dashboard": {
+        "classes": [
+            "container",
+            "h-100",
+            "userPage",
+            "dashboardPage",
+            "d-none",
+            "pt-5",
+            "mt-5"
+        ],
+        "child": {
+            "classes": [
+                "text-center",
+                "mx-auto",
+                "d-flex",
+                "flex-column"
+            ]
+        },
+        "title": {
+            "name": "To-Do Lists",
+            "classes": [
+                "display-4"
+            ]
+        },
+        "button": {
+            "id": "todoTaskListPage",
+            "text": "Add To-Do List"
+        }
+    },
+    "todoTaskList": {
+        "classes": [
+            "container",
+            "h-100",
+            "userPage",
+            "todoTaskListPage",
+            "d-none",
+            "pt-5",
+            "mt-5"
+        ],
+        "child": {
+            "classes": [
+                "mx-auto",
+                "d-flex",
+                "flex-column"
+            ]
+        },
+        "title": {
+            "id": "todoTaskListHeader",
+            "classes": [
+                "display-4",
+                "text-center"
+            ]
+        },
+        "button": {
+            "id": "addTaskItemButton",
+            "text": "Add Task Item"
+        },
+        "form": {
+            "id": "todoTaskForm",
+            "error": "todoTaskListError",
+            "classes": ["form", "form-more-width"]
+        },
+        "submit": {
+            "text": "Save List",
+            "classes": [
+                "form-limited-width",
+                "text-center",
+                "mx-auto"
+            ]
+        },
+        "inputs": [
+            {
+                "type": "hidden",
+                "id": "taskNum",
+                "value": 0,
+                "required": true
+            },
+            {
+                "type": "text",
+                "id": "todoTaskListName",
+                "class": "form-control",
+                "label": "List name",
+                "error": "todoTaskListNameError",
+                "required": true
+            }
+        ]
+    },
+    "settings": {
+        "classes": [
+            "container",
+            "h-100",
+            "userPage",
+            "settingsPage",
+            "d-none"
+        ],
+        "child": {
+            "classes": [
+                "mx-auto",
+                "d-flex",
+                "justify-content-center",
+                "flex-column",
+                "h-100"
+            ]
+        },
+        "title": {
+            "name": "Settings",
+            "classes": [
+                "display-4",
+                "text-center"
+            ]
+        },
+        "form": {
+            "id": "settingsForm",
+            "error": "settingsError",
+            "classes": [
+                "form",
+                "form-limited-width"
+            ]
+        },
+        "submit": {
+            "text": "Save Settings"
+        },
+        "inputs": [
+            {
+                "type": "text",
+                "id": "firstName",
+                "class": "form-control",
+                "label": "First name",
+                "error": "firstNameError",
+                "required": true
+            },
+            {
+                "type": "text",
+                "id": "lastName",
+                "class": "form-control",
+                "label": "Last name",
+                "error": "lastNameError",
+                "required": true
+            },
+            {
+                "type": "email",
+                "id": "email",
+                "class": "form-control",
+                "label": "Email address",
+                "error": "emailError",
+                "required": true
+            },
+            {
+                "type": "password",
+                "id": "password",
+                "class": "form-control",
+                "label": "Password",
+                "error": "passwordError",
+                "required": true
+            }
+        ]
+    }
+}

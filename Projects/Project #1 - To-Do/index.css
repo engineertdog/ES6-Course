@@ -66,9 +66,16 @@ hr {
 
 .form {
     width: 100%;
-    max-width: 420px;
     padding: 15px;
     margin: 0 auto;
+}
+
+.form-limited-width {
+    max-width: 420px;
+}
+
+.form-more-width {
+    max-width: 580px;
 }
 
 .form-label-group,
