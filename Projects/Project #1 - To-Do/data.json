@@ -1,4 +1,7 @@
 {
+    "info": {
+        "title": "ES6"
+    },
     "navbarItems": {
         "nav": {
             "id": "navbar",
@@ -273,7 +276,10 @@
         "form": {
             "id": "todoTaskForm",
             "error": "todoTaskListError",
-            "classes": ["form", "form-more-width"]
+            "classes": [
+                "form",
+                "form-more-width"
+            ]
         },
         "submit": {
             "text": "Save List",
@@ -368,6 +374,120 @@
                 "error": "passwordError",
                 "required": true
             }
+        ]
+    },
+    "validationRules": {
+        "registerFirstName": {
+            "min": {
+                "value": 5,
+                "text": "First name must be at least 5 characters"
+            },
+            "max": {
+                "value": 25,
+                "text": "First name can only be 25 characters"
+            }
+        },
+        "registerLastName": {
+            "min": {
+                "value": 3,
+                "text": "Last name must be at least 3 characters"
+            },
+            "max": {
+                "value": 30,
+                "text": "Last name can only be 30 characters"
+            }
+        },
+        "registerEmail": {
+            "text": "Please enter a valid email"
+        },
+        "registerPassword": {
+            "min": {
+                "value": 5,
+                "text": "Password must be at least 5 characters"
+            },
+            "max": {
+                "value": 50,
+                "text": "Passwords have a limit of 50 characters"
+            }
+        },
+        "registerTerms": {
+            "text": "Please agree to the terms of use"
+        },
+        "todoTaskListName": {
+            "min": {
+                "value": 5,
+                "text": "Task List name must be at least 5 characters."
+            },
+            "max": {
+                "value": 255,
+                "text": "Task List name can't be more than 255 characters."
+            }
+        },
+        "requiredTask": {
+            "min": {
+                "value": 1,
+                "text": "Task List requires at least one task."
+            },
+            "max": {
+                "value": 255,
+                "text": "Task item can't be more than 255 characters."
+            }
+        },
+        "taskItem": {
+            "min": {
+                "value": 1,
+                "text": "Task item must be at least 1 character."
+            },
+            "max": {
+                "value": 255,
+                "text": "Task item can't be more than 255 characters."
+            }
+        },
+        "alias": {
+            "firstName": "registerFirstName",
+            "lastName": "registerLastName",
+            "email": "registerEmail",
+            "password": "registerPassword"
+        }
+    },
+    "classes": {
+        "block": "d-block",
+        "dNone": "d-none",
+        "alert": {
+            "success": "alert-success",
+            "danger": "alert-danger",
+            "info": "alert-info"
+        },
+        "form": {
+            "valid": "is-valid",
+            "invalid": "is-invalid"
+        },
+        "submitButton": [
+            "btn",
+            "btn-lg",
+            "btn-custom",
+            "btn-block"
+        ],
+        "inputContainer": "form-label-group",
+        "checkBoxContainer": [
+            "checkbox",
+            "mb-3",
+            "form-group"
+        ],
+        "checkboxChild": "form-check",
+        "checkboxLabel": "form-check-label",
+        "inputError": "invalid-feedback",
+        "taskButtonContainer": [
+            "lead",
+            "pb-0",
+            "pt-3",
+            "text-center"
+        ],
+        "taskButton": [
+            "btn",
+            "btn-custom",
+            "userButton",
+            "d-none"
         ]
     }
 }

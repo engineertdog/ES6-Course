@@ -14,92 +14,18 @@
  *
  */
 
+// Location of the app data JSON file.
 const projectDataURL = "http://localhost:5000/project1data";
-let appData;
+// Variable to hold the app data JSON, one for the widely used d-none class, and one for the alert classes.
+let appData, dNone, dClass, aClass, fClass;
+// Variable to keep track of the task item on the To-Do Task List form.
 let taskItemNum = 0;
-
 // User information for logged in session.
 let userData = [];
 // Logged in tracker
 let loggedIn = false;
 // Tracker for the previous page visited, used for formatting since this is a one page application.
 let oldPage = "intro";
-
-// Validation rule object. This would normally come from a JSON file or from a database.
-const validationRules = {
-    registerFirstName: {
-        min: {
-            value: 5,
-            text: "First name must be at least 5 characters"
-        },
-        max: {
-            value: 25,
-            text: "First name can only be 25 characters"
-        }
-    },
-    registerLastName: {
-        min: {
-            value: 3,
-            text: "Last name must be at least 3 characters"
-        },
-        max: {
-            value: 30,
-            text: "Last name can only be 30 characters"
-        }
-    },
-    registerEmail: {
-        text: "Please enter a valid email"
-    },
-    registerPassword: {
-        min: {
-            value: 5,
-            text: "Password must be at least 5 characters"
-        },
-        max: {
-            value: 50,
-            text: "Passwords have a limit of 50 characters"
-        }
-    },
-    registerTerms: {
-        text: "Please agree to the terms of use"
-    },
-    todoTaskListName: {
-        min: {
-            value: 5,
-            text: "Task List name must be at least 5 characters."
-        },
-        max: {
-            value: 255,
-            text: "Task List name can't be more than 255 characters."
-        }
-    },
-    requiredTask: {
-        min: {
-            value: 1,
-            text: "Task List requires at least one task."
-        },
-        max: {
-            value: 255,
-            text: "Task item can't be more than 255 characters."
-        }
-    },
-    taskItem: {
-        min: {
-            value: 1,
-            text: "Task item must be at least 1 character."
-        },
-        max: {
-            value: 255,
-            text: "Task item can't be more than 255 characters."
-        }
-    },
-    alias: {
-        "firstName": "registerFirstName",
-        "lastName": "registerLastName",
-        "email": "registerEmail",
-        "password": "registerPassword"
-    }
-}
 
 const startApp = () => {
     /**
@@ -124,30 +50,15 @@ const startApp = () => {
             e.preventDefault();
         }
 
-        // If the user left the login page, reset the login error display.
+        // Reset the form's error div when the user changes pages
         if (oldPage === "loginUser") {
-            loginError.classList.add("d-none");
-            loginError.innerText = "";
-        }
-
-        // If the user left the register page, reset the register error display.
-        if (oldPage === "registerUser") {
-            registerError.classList.add("d-none");
-            registerError.innerText = "";
-        }
-
-        // If the user left the settings page, reset the settings error display.
-        if (oldPage === "settingsPage") {
-            settingsError.classList.add("d-none");
-            settingsError.classList.remove("alert-danger", "alert-success", "alert-info");
-            settingsError.innerText = "";
-        }
-
-        // If the user left the To-Do Task List page, reset the error display.
-        if (oldPage === "todoTaskListPage") {
-            todoTaskListError.classList.remove("alert-success");
-            todoTaskListError.classList.add("alert-danger", "d-none");
-            todoTaskListError.innerText = "";
+            changeAttributes(loginError, {danger: aClass.danger, dNone: dNone}, aClass, "");
+        } else if (oldPage === "registerUser") {
+            changeAttributes(registerError, {danger: aClass.danger, dNone: dNone}, aClass, "");
+        } else if (oldPage === "settingsPage") {
+            changeAttributes(settingsError, {danger: aClass.danger, dNone: dNone}, aClass, "");
+        } else if (oldPage === "todoTaskListPage") {
+            changeAttributes(todoTaskListError, {danger: aClass.danger, dNone: dNone}, aClass, "");
             resetTodoTaskListForm();
         }
 
@@ -201,12 +112,12 @@ const startApp = () => {
     const buttonDisplay = () => {
         // Loop through the guestButtons to show / hide them.
         for (const button of guestButtons) {
-            button.classList.toggle("d-none");
+            button.classList.toggle(dNone);
         }
 
         // Loop through the userButtons to show / hide them.
         for (const button of userButtons) {
-            button.classList.toggle("d-none");
+            button.classList.toggle(dNone);
         }
 
         // Toggle whether the user is logged in or not.
@@ -234,14 +145,14 @@ const startApp = () => {
             const classes = page.classList;
 
             // If the page does not have the d-none class, add it.
-            if (!classes.contains("d-none")) {
-                classes.add("d-none");
+            if (!classes.contains(dNone)) {
+                classes.add(dNone);
             }
 
             // If the current item in the HTML collection is the one we want to view, do a few things.
             if (classes.contains(id)) {
                 // First, remove the d-none class so we can view the page.
-                classes.remove("d-none");
+                classes.remove(dNone);
 
                 // Switch the ID to perform additional actions.
                 switch (id) {
@@ -288,7 +199,7 @@ const startApp = () => {
 
             // Help the user to see the intro page of the application when they click logout.
             if ((button === "logoutButton") && (page.id === id)) {
-                classes.remove("d-none");
+                classes.remove(dNone);
             }
         }
     }
@@ -308,8 +219,7 @@ const startApp = () => {
         // Set continue login to false so we can reject or accept the login.
         let contLogin = false;
         // Reset the login error div attributes.
-        loginError.classList.add("d-none");
-        loginError.innerText = "";
+        changeAttributes(loginError, {danger: aClass.danger, dNone: dNone}, {}, "");
 
         // If the users object exists in storage, look to see if the user exists
         if (users) {
@@ -331,13 +241,11 @@ const startApp = () => {
                 t.reset();
             } else {
                 // Display an error message if the user entered an invalid password for their account.
-                loginError.classList.remove("d-none");
-                loginError.innerText = "Your password is incorrect.";
+                changeAttributes(loginError, {}, {dNone: dNone}, "Your password is incorrect.");
             }
         } else {
             // Show an error message if the user's email is not in the user object
-            loginError.classList.remove("d-none");
-            loginError.innerText = "There is no account associated with that email.";
+            changeAttributes(loginError, {}, {dNone: dNone}, "There is no account associated with that email.");
         }
     }
 
@@ -354,8 +262,7 @@ const startApp = () => {
         // Set a function continue variable to false initally so checks can be performed.
         let contRegister = false;
         // Reset the register error div attributes.
-        registerError.classList.add("d-none");
-        registerError.innerText = "";
+        changeAttributes(registerError, {danger: aClass.danger, dNone: dNone}, {}, "");
 
         // If the form has no errors, continue. Errors will be displayed by default through the function called by register.
         if (register) {
@@ -404,8 +311,7 @@ const startApp = () => {
                 }
             } else {
                 // Display an error if the selected email is already in use.
-                registerError.classList.remove("d-none");
-                registerError.innerText = "That email is already in use.";
+                changeAttributes(registerError, {}, {dNone: dNone}, "That email is already in use.");
             }
         }
     }
@@ -622,9 +528,7 @@ const startApp = () => {
         // Set the task list object to the modified task list object.
         localStorage.setItem("taskList", JSON.stringify(myTasks));
         // Tell the user we have added their task list.
-        todoTaskListError.innerText = "We have saved your To-Do List.";
-        todoTaskListError.classList.add("alert-success");
-        todoTaskListError.classList.remove("alert-danger", "d-none");
+        changeAttributes(todoTaskListError, {success: aClass.success}, aClass, "We have saved your To-Do List.");
         // Reset the task list form with the function below.
         resetTodoTaskListForm();
     }
@@ -696,9 +600,7 @@ const startApp = () => {
         // Set a continue value to true that can be changed to false after checking a few things.
         let contSettings = true;
         // Rset the settings form error div.
-        settingsError.classList.add("d-none", "alert-danger");
-        settingsError.classList.remove("alert-info", "alert-success");
-        settingsError.innerText = "";
+        changeAttributes(settingsError, {danger: aClass.danger, dNone: dNone}, {}, "");
 
         // If the form elements all passed validation checks, continue. Errors will be displayed by default.
         if (settings) {
@@ -773,9 +675,7 @@ const startApp = () => {
                         userData = user[email];
 
                         // Alert the user that their settings have changed.
-                        settingsError.classList.add("alert-success");
-                        settingsError.classList.remove("alert-danger", "d-none");
-                        settingsError.innerText = "We have updated your settings";
+                        changeAttributes(settingsError, {success: aClass.success}, aClass, "We have updated your settings");
 
                         // Loop through the settings form and remove validation styling.
                         for (const i of t) {
@@ -783,19 +683,15 @@ const startApp = () => {
                         }
                     } else {
                         // Display a message to the user if the email they wanted to change to is already in use.
-                        settingsError.classList.remove("d-none");
-                        settingsError.innerText = "That email is already in use";
+                        changeAttributes(settingsError, {}, {dNone: dNone, danger: aClass.danger}, "That email is already in use");
                     }
                 } else {
                     // Display a message to the user if they have not changed any settings.
-                    settingsError.classList.add("alert-info");
-                    settingsError.classList.remove("alert-danger", "d-none");
-                    settingsError.innerText = "You have not changed any setting";
+                    changeAttributes(settingsError, {info: aClass.info}, {dNone: dNone}, "You have not changed any setting");
                 }
             } else {
                 // Display an error to the user that their account doesn't exist.
-                settingsError.classList.remove("d-none");
-                settingsError.innerText = "We couldn't find your account.";
+                changeAttributes(settingsError, {}, {dNone: dNone}, "We couldn't find your account.");
             }
         }
     }
@@ -842,7 +738,8 @@ const startApp = () => {
     const validateInputs = (formItem) => {
         // Set the function return initially to false
         let errors = false;
-        let errorText;
+        let errorText = "";
+        let errorNode;
         let nodeID = formItem.id;
 
         // Following IF statement is used for the To-Do Task List form since it works differently than other forms.
@@ -852,9 +749,9 @@ const startApp = () => {
                 return;
             }
 
-            // If the form element's ID is blank (which is all added elements), then set the errorText to the proper node.
+            // If the form element's ID is blank (which is all added elements), then set the errorNode to the proper node.
             if (nodeID === "") {
-                errorText = app.querySelector("#task-" + formItem.dataset.tasknum);
+                errorNode = app.querySelector("#task-" + formItem.dataset.tasknum);
                 nodeID = "taskItem";
             }
         }
@@ -862,29 +759,30 @@ const startApp = () => {
         // Set a variable to the length of the form input value.
         const iLength = formItem.value.length;
 
-        if (typeof errorText === "undefined") {
+        if (typeof errorNode === "undefined") {
             // Grab the form input's ID to grab it's respective error div.
-            errorText = app.querySelector("#" + nodeID + "Error");
+            errorNode = app.querySelector("#" + nodeID + "Error");
         }
 
         // Do nothing if the input is the submit button
         if (formItem.type !== "submit") {
+            // Set the validation rules to a re-useable variable
+            const vRules = appData.validationRules;
             // Set item to the object from the validation rules based on the form input's ID. This object contains
             // all of the validation rules for the form input to be checked. Aliases are also used for items
             // that utilize the same data as other inputs for validation.
-            const item = validationRules[nodeID] || validationRules[validationRules.alias[nodeID]];
+            const item = vRules[nodeID] || vRules[vRules.alias[nodeID]];
             // Remove the form input's validation classes in case it has any.
-            formItem.classList.remove("is-invalid", "is-valid");
+            changeAttributes(formItem, {}, {invalid: fClass.invalid, valid: fClass.valid}, "");
             // Reset the form input's error div.
-            errorText.innerText = "";
-            errorText.classList.remove("d-block");
+            changeAttributes(errorNode, {}, {block: appData.classes.block}, "");
 
             // item.text grabs the form input's error text
             // Same for item.min.text and item.max.text. We use the object to grab the respective
             if (formItem.type === "checkbox") {
                 // Make all check boxes required to be checked
                 if (!formItem.checked) {
-                    errorText.innerText = item.text;
+                    errorText = item.text;
                     errors = true;
                 }
             } else if (formItem.type === "email") {
@@ -893,7 +791,7 @@ const startApp = () => {
 
                 // Show an error if the email does not meet the regex requirements.
                 if (!regex.test(formItem.value)) {
-                    errorText.innerText = item.text;
+                    errorText = item.text;
                     errors = true;
                 }
             } else {
@@ -901,10 +799,10 @@ const startApp = () => {
 
                 // Check the min length and then the max length. Error if either one fails.
                 if (item.min.value > iLength) {
-                    errorText.innerText = item.min.text;
+                    errorText = item.min.text;
                     errors = true;
                 } else if (item.max.value < iLength) {
-                    errorText.innerText = item.max.text;
+                    errorText = item.max.text;
                     errors = true;
                 }
             }
@@ -912,17 +810,41 @@ const startApp = () => {
 
         if (errors) {
             // Style the form input to show it is in error.
-            formItem.classList.add("is-invalid");
+            changeAttributes(formItem, {invalid: fClass.invalid}, {}, "");
             // Show the form input's error div.
-            errorText.classList.add("d-block");
+            changeAttributes(errorNode, {block: appData.classes.block}, {}, errorText);
             // Return true to indicate the form input has errors.
             return true;
         } else {
             // Style the form input to show it is valid.
-            formItem.classList.add("is-valid");
+            changeAttributes(formItem, {valid: fClass.valid}, {}, "");
             // Return false to indicate the form input is valid based on our rules.
             return false;
         }
+    }
+
+    /**
+     * Take a node to remove and add classes from supplied objects to the node. Then set the inner
+     * text of the node to the desired value.
+     *
+     * @param {object} node The node to modify.
+     * @param {object} classesAdd Classes to add to the node.
+     * @param {object} classesRemove Classes to remove from the node.
+     * @param {string} text Inner text for the node to be set.
+     */
+    const changeAttributes = (node, classesAdd, classesRemove, text) => {
+        // Remove all classes desired.
+        for (const remove in classesRemove) {
+            node.classList.remove(classesRemove[remove]);
+        }
+
+        // Add all new classes to the node.
+        for (const add in classesAdd) {
+            node.classList.add(classesAdd[add]);
+        }
+
+        // Set the inner text of the node.
+        node.innerText = text;
     }
 
     /**
@@ -980,16 +902,7 @@ const startApp = () => {
 }
 
 // Useful data to the application.
-const appLogo = "ES6";
 const errorDivClasses = ["alert", "alert-danger", "d-none"];
-const submitButtonClasses = ["btn", "btn-lg", "btn-custom", "btn-block"];
-const inputContainerClass = "form-label-group";
-const checkBoxContainerClasses = ["checkbox", "mb-3", "form-group"];
-const checkboxChildClass = "form-check";
-const checkboxLabelClass = "form-check-label";
-const inputErrorClass = "invalid-feedback";
-const taskButtonContainerClasses = ["lead", "pb-0", "pt-3", "text-center"];
-const taskButtonClasses = ["btn", "btn-custom", "userButton", "d-none"];
 
 /**
  * Load the application content from a JSON file to setup the application.
@@ -999,6 +912,10 @@ const loadAppData = async () => {
     const response = await fetch(projectDataURL);
     // Set a global variable to the json result.
     appData = await response.json();
+    dClass = appData.classes;
+    dNone = dClass.dNone;
+    aClass = dClass.alert;
+    fClass = dClass.form;
 }
 
 /**
@@ -1027,7 +944,7 @@ const loadNavbar = () => {
 
     nav.id = navbarData.nav.id;
     nav.innerHTML = navData;
-    navDiv.innerHTML = `<h5 class="my-0 mr-md-auto font-weight-normal">${appLogo}</h5>`;
+    navDiv.innerHTML = `<h5 class="my-0 mr-md-auto font-weight-normal">${appData.info.title}</h5>`;
     navDiv.appendChild(nav);
     app.prepend(navDiv);
 }
@@ -1058,7 +975,7 @@ const loadPage = async (p, hasForm = false) => {
     childDiv.appendChild(titleH1);
 
     if ((p === "dashboard") || (p === "todoTaskList")) {
-        childDiv.appendChild(addButton(page.button.id, page.button.text, taskButtonContainerClasses, taskButtonClasses));
+        childDiv.appendChild(addButton(page.button.id, page.button.text, dClass.taskButtonContainer, dClass.taskButton));
     }
 
     childDiv.appendChild(hr);
@@ -1086,7 +1003,7 @@ const loadForm = (page) => {
         errorDiv.classList.add(errorStyle);
     }
 
-    for (const buttonStyle of submitButtonClasses) {
+    for (const buttonStyle of dClass.submitButton) {
         submit.classList.add(buttonStyle);
     }
 
@@ -1134,13 +1051,13 @@ const loadForm = (page) => {
 
             if (input.type !== "checkbox") {
                 parentContainer = inputContainer;
-                inputContainer.classList.add(inputContainerClass);
+                inputContainer.classList.add(dClass.inputContainer);
             } else {
                 parentContainer = inputChild;
-                inputChild.classList.add(checkboxChildClass);
-                inputLabel.classList.add(checkboxLabelClass);
+                inputChild.classList.add(dClass.checkboxChild);
+                inputLabel.classList.add(dClass.checkboxLabel);
 
-                for (const contClasses of checkBoxContainerClasses) {
+                for (const contClasses of dClass.checkBoxContainer) {
                     inputContainer.classList.add(contClasses);
                 }
             }
@@ -1149,7 +1066,7 @@ const loadForm = (page) => {
             parentContainer.appendChild(inputLabel);
 
             if (input.error) {
-                inputError.classList.add(inputErrorClass);
+                inputError.classList.add(dClass.inputError);
                 inputError.id = input.error;
                 parentContainer.appendChild(inputError);
             }
