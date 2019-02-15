@@ -183,7 +183,7 @@ const startApp = () => {
                         oldPage = appData.todoTaskList.page;
 
                         // Set the header of the To-Do List form page.
-                        if (todoAction === null) {
+                        if (!todoAction) {
                             todoTaskListHeader.innerText = lang.cList;
                         } else {
                             todoTaskListHeader.innerText = lang.eList;
@@ -283,11 +283,11 @@ const startApp = () => {
             const existingUsers = storageGet(appData.info.users);
 
             // If there are no users yet, continue.
-            if (existingUsers === null) {
+            if (!existingUsers) {
                 contRegister = true;
             } else {
                 // If the email entered does not exist in the user object, continue. This will be true when the existing users object is null.
-                if (existingUsers[email] === null) {
+                if (!existingUsers[email]) {
                     contRegister = true;
                     // If the email entered does not exist in the user object, continue. This will be true when there are existing users and the user object is not null.
                 } else if (typeof existingUsers[email] === undef) {
@@ -509,7 +509,7 @@ const startApp = () => {
         const existingTasks = storageGet(appData.info.taskList);
 
         // If there are no tasks, allow creation.
-        if (existingTasks === null) {
+        if (!existingTasks) {
             taskNum = 1;
         } else {
             // If the user has not created any task lists yet, set the index of the task list to 1.
@@ -635,7 +635,7 @@ const startApp = () => {
             if (existingUsers) {
                 // If the user object does not contain the object for the user with the old email, return false. This should always be true though
                 // because we have no way to delete users in this application, unless the user deletes their localstorage while logged in.
-                if ((existingUsers[oldEmail] === null) || (typeof existingUsers[oldEmail] === undef)) {
+                if (!existingUsers[oldEmail] || (typeof existingUsers[oldEmail] === undef)) {
                     contSettings = false;
                 }
             }
@@ -676,7 +676,7 @@ const startApp = () => {
                             const taskList = storageGet(appData.info.taskList);
 
                             // If the user has created task lists at some point, update the task list object.
-                            if (taskList !== null) {
+                            if (taskList) {
                                 if ((typeof taskList[oldEmail] !== undef)) {
                                     // Copy the old user task list object to the new email.
                                     taskList[email] = taskList[oldEmail];
@@ -1300,7 +1300,7 @@ const changeClassAndText = (node, classesAdd, classesRemove = {}, text = null) =
     }
 
     // Set the inner text of the node.
-    if (text !== null) {
+    if (text) {
         node.innerText = text;
     }
 }
