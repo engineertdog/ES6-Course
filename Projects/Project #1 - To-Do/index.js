@@ -219,7 +219,7 @@ const startApp = () => {
         // Set the form target to t
         const t = e.target;
         // Grab the user's data list from storage. Normally, this would be from a database.
-        const users = JSON.parse(localStorage.getItem(appData.info.users));
+        const users = storageGet(appData.info.users);
         // Set email to an variable for easier use
         let email = t.loginEmail.value;
         // Set continue login to false so we can reject or accept the login.
@@ -280,7 +280,7 @@ const startApp = () => {
             // Set the entered email to a re-useable variable
             const email = t.registerEmail.value;
             // Grab the user object from storage. Normally, this would be from a database.
-            const existingUsers = JSON.parse(localStorage.getItem(appData.info.users));
+            const existingUsers = storageGet(appData.info.users);
 
             // If there are no users yet, continue.
             if (existingUsers === null) {
@@ -308,7 +308,7 @@ const startApp = () => {
                 };
 
                 // Set the user object in storage to the new user object with the newly created user.
-                localStorage.setItem(appData.info.users, JSON.stringify(user));
+                storagePut(appData.info.users, JSON.stringify(user));
                 // Copy the user data to a global variable for use throughout the application.
                 userData = Object.assign({}, user[email]);
                 // Simulate a click on the dashboardButton to simulate changing pages.
@@ -334,7 +334,7 @@ const startApp = () => {
         // Set continue to false so we can perform checks.
         let contLists = false;
         // Grab the taskList object from storage. Normally, this would be from a database.
-        const taskList = JSON.parse(localStorage.getItem(appData.info.taskList));
+        const taskList = storageGet(appData.info.taskList);
         // Initialize a variable to hold the HTML for the To-Do Lists to be displayed.
         let taskHolder = "";
 
@@ -401,7 +401,7 @@ const startApp = () => {
         // Grab the ID string and extract the number from the string (in format list-####).
         id = id.substring(5, id.length);
         // Grab the taskList object from storage. Normally, this would be from a database.
-        const taskList = JSON.parse(localStorage.getItem(appData.info.taskList));
+        const taskList = storageGet(appData.info.taskList);
 
         // Continue if the task list exists.
         if (taskList[userData.email][id] !== undef) {
@@ -506,7 +506,7 @@ const startApp = () => {
         }
 
         // Grab the taskList object from storage. Normally, this would be from a database.
-        const existingTasks = JSON.parse(localStorage.getItem(appData.info.taskList));
+        const existingTasks = storageGet(appData.info.taskList);
 
         // If there are no tasks, allow creation.
         if (existingTasks === null) {
@@ -542,7 +542,7 @@ const startApp = () => {
         }
 
         // Set the task list object to the modified task list object.
-        localStorage.setItem(appData.info.taskList, JSON.stringify(myTasks));
+        storagePut(appData.info.taskList, JSON.stringify(myTasks));
         // Tell the user we have added their task list.
         changeClassAndText(todoTaskListError, [aClass.success], aClass, lang.taskList.saved);
         // Reset the task list form with the function below.
@@ -561,7 +561,7 @@ const startApp = () => {
         // If the target event has the class taskDeleteButton, then the user likely wanted to delete the respective To-Do Task List.
         if (t.classList.contains(appData.app.buttons.deleteList)) {
             // Grab the taskList object from storage. Normally, this would be from a database.
-            const taskList = JSON.parse(localStorage.getItem(appData.info.taskList));
+            const taskList = storageGet(appData.info.taskList);
             // Find the parent container for the selected To-Do Task List.
             const container = t.closest(`.${appData.app.classes.listItem}`);
             // Remove the element from the page.
@@ -572,7 +572,7 @@ const startApp = () => {
             // Delete the task list from the task list object.
             delete taskList[userData.email][id];
             // Updated the task list object with the deleted entry.
-            localStorage.setItem(appData.info.taskList, JSON.stringify(taskList));
+            storagePut(appData.info.taskList, JSON.stringify(taskList));
 
             // Check to see if the user has deleted all of their To-Do Task Lists.
             if (Object.keys(taskList[userData.email]).length === 0) {
@@ -629,7 +629,7 @@ const startApp = () => {
             // Capture the email entered on the form.
             const email = t.email.value;
             // Grab the user object from storage.
-            const existingUsers = JSON.parse(localStorage.getItem(appData.info.users));
+            const existingUsers = storageGet(appData.info.users);
 
             // If the user object exists, continue.
             if (existingUsers) {
@@ -673,7 +673,7 @@ const startApp = () => {
                             // Delete the old user object.
                             delete user[oldEmail];
                             // Grab the task list object from storage.
-                            const taskList = JSON.parse(localStorage.getItem(appData.info.taskList));
+                            const taskList = storageGet(appData.info.taskList);
 
                             // If the user has created task lists at some point, update the task list object.
                             if (taskList !== null) {
@@ -683,7 +683,7 @@ const startApp = () => {
                                     // Delete the old user task list object.
                                     delete taskList[oldEmail];
                                     // Update the task list object in storage.
-                                    localStorage.setItem(appData.info.taskList, JSON.stringify(taskList));
+                                    storagePut(appData.info.taskList, JSON.stringify(taskList));
                                 }
                             }
                         }
@@ -692,7 +692,7 @@ const startApp = () => {
                     // If the user can change their email, or by default, continue.
                     if (canChangeEmail) {
                         // Update the user object in storage.
-                        localStorage.setItem(appData.info.users, JSON.stringify(user));
+                        storagePut(appData.info.users, JSON.stringify(user));
                         // Set the userData to the new user object for the current user.
                         userData = user[email];
 
@@ -1303,6 +1303,25 @@ const changeClassAndText = (node, classesAdd, classesRemove = {}, text = null) =
     if (text !== null) {
         node.innerText = text;
     }
+}
+
+/**
+ * Get data objects. Extracted function makes it easier to change to a database later on.
+ *
+ * @param {string} id
+ */
+const storageGet = (id) => {
+    return JSON.parse(localStorage.getItem(id))
+}
+
+/**
+ * Store data objects. Extracted function makes it easier to change to a database later on.
+ *
+ * @param {string} id ID of the data object to store.
+ * @param {object} data Data object to save to storage.
+ */
+const storagePut = (id, data) => {
+    localStorage.setItem(id, JSON.stringify(data));
 }
 
 /**
