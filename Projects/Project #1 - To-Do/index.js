@@ -1,5 +1,5 @@
 /**
- * Project #1 - To-Do Application
+ * Project #1 - To-Do Application (With Assignment #9 modifications)
  *
  * The application herein allows users to create To-Do Lists and attach tasks to each list. The application uses localStorage to store
  * the user and task data. It is able to support many users with the way data is stored. Users have to sign up with unique emails, and all
@@ -12,12 +12,17 @@
  * The user can change their email so long as the email they want to use is not already in use. When the user updates their email to a new one,
  * it also updates the task list object in storage so that the user still has access to the To-Do Lists they have created.
  *
+ * The project has been updated to use a JSON file to store details about the application so that
+ * items can be iterated over and re-used. This helps to reduce clutter in the JavaScript file(s) and
+ * mimicks real usage.
+ *
  */
 
 // Location of the app data JSON file.
 const projectDataURL = "http://localhost:5000/project1data";
-// Variable to hold the app data JSON, one for the widely used d-none class, and one for the alert classes.
-let appData, dNone, dClass, aClass, fClass;
+// Variable to hold the app data JSON, one for undefined, one for lang, one for the widely used d-none class,
+// and one for the alert classes.
+let appData, undef, lang, dNone, dClass, aClass, fClass;
 // Variable to keep track of the task item on the To-Do Task List form.
 let taskItemNum = 0;
 // User information for logged in session.
@@ -44,21 +49,21 @@ const startApp = () => {
 
         // If the node clicked was the github button, we return from the function to allow the user to
         // visit the link. Otherwise, we prevent the default action of links.
-        if (id === "github") {
+        if (id === appData.navbarItems.buttons.github.id) {
             return;
         } else {
             e.preventDefault();
         }
 
         // Reset the form's error div when the user changes pages
-        if (oldPage === "loginUser") {
-            changeAttributes(loginError, {danger: aClass.danger, dNone: dNone}, aClass, "");
-        } else if (oldPage === "registerUser") {
-            changeAttributes(registerError, {danger: aClass.danger, dNone: dNone}, aClass, "");
-        } else if (oldPage === "settingsPage") {
-            changeAttributes(settingsError, {danger: aClass.danger, dNone: dNone}, aClass, "");
-        } else if (oldPage === "todoTaskListPage") {
-            changeAttributes(todoTaskListError, {danger: aClass.danger, dNone: dNone}, aClass, "");
+        if (oldPage === appData.login.page) {
+            changeClassAndText(loginError, [aClass.danger, dNone], aClass, "");
+        } else if (oldPage === appData.register.page) {
+            changeClassAndText(registerError, [aClass.danger, dNone], aClass, "");
+        } else if (oldPage === appData.settings.page) {
+            changeClassAndText(settingsError, [aClass.danger, dNone], aClass, "");
+        } else if (oldPage === appData.todoTaskList.page) {
+            changeClassAndText(todoTaskListError, [aClass.danger, dNone], aClass, "");
             resetTodoTaskListForm();
         }
 
@@ -68,19 +73,19 @@ const startApp = () => {
         oldPage = id;
 
         // Display the correct page, and perform other functions, based on the button the user clicked.
-        if (t.classList.contains("guestButton")) {
+        if (t.classList.contains(appData.app.guest.button)) {
             // Display the correct guest page when the user is logged out.
             pageDisplay(guestPage, id);
-        } else if (t.classList.contains("userButton")) {
+        } else if (t.classList.contains(appData.app.user.button)) {
             // This section could be reduced, but, the order of events is important because delays could
             // cause display issues.
 
             // User clicks logout button.
-            if (id === "logoutButton") {
+            if (id === appData.navbarItems.buttons.logoutButton.id) {
                 // Make all of the logged in pages disappear.
                 pageDisplay(userPage, id);
                 // Send the user back to the intro to the application.
-                pageDisplay(guestPage, "intro", id);
+                pageDisplay(guestPage, appData.intro.id, id);
                 // Display the correct buttons for the user to be logged out.
                 buttonDisplay();
                 // Return from the function because we don't want to check the functions below.
@@ -95,10 +100,10 @@ const startApp = () => {
 
             // Display the correct logged in page.
             pageDisplay(userPage, id);
-        } else if (t.classList.contains("taskViewButton")) {
+        } else if (t.classList.contains(appData.app.buttons.viewList)) {
             // This is invoked when the user clicks on "View List" button on the To-Do List page.
             // This will correctly display the edit form for the select To-Do List.
-            pageDisplay(userPage, "todoTaskListPage", null, "Edit");
+            pageDisplay(userPage, appData.todoTaskList.page, null, lang.edit);
             // Set the form up to display the selected To-Do's List to be edited.
             displayTaskListItems(t.id);
         }
@@ -156,41 +161,42 @@ const startApp = () => {
 
                 // Switch the ID to perform additional actions.
                 switch (id) {
-                    case "loginUser":
+                    case appData.login.page:
                         // Set the focus to the email field on the login page.
-                        app.querySelector("#loginEmail").focus();
+                        app.querySelector(`#${appData.formFocus.login}`).focus();
                         break;
-                    case "registerUser":
+                    case appData.register.page:
                         // Set the focus to the first name field on the register page.
-                        app.querySelector("#registerFirstName").focus();
+                        app.querySelector(`#${appData.formFocus.register}`).focus();
                         break;
-                    case "dashboardPage":
+                    case appData.dashboard.page:
                         // Get the list of To-Do Lists for the current user.
                         gettodoTaskList();
                         break;
-                    case "todoTaskListPage":
+                    case appData.todoTaskList.page:
                         // Set focus to the To-Do List name.
-                        app.querySelector("#todoTaskListName").focus();
+                        app.querySelector(`#${appData.formFocus.todoTaskList}`).focus();
                         // Set the previous page variable to the To-Do List form page. This is because
                         // when the user clicks the "View List" button on the Dashboard, this variable
                         // get set to the wrong value otherwise.
-                        oldPage = "todoTaskListPage";
+
+                        oldPage = appData.todoTaskList.page;
 
                         // Set the header of the To-Do List form page.
                         if (todoAction === null) {
-                            todoTaskListHeader.innerText = "Create List";
+                            todoTaskListHeader.innerText = lang.cList;
                         } else {
-                            todoTaskListHeader.innerText = "Edit List";
+                            todoTaskListHeader.innerText = lang.eList;
                         }
                         break;
-                    case "settingsPage":
+                    case appData.settings.page:
                         // Set focus to the first name field on the settings page.
-                        app.querySelector("#firstName").focus();
+                        app.querySelector(`#${appData.formFocus.settings}`).focus();
 
                         // Loop through the userData variable and set the settings input fields to
                         // the value of the setting in the userData variable.
                         for (const d in userData) {
-                            app.querySelector("#" + d).value = userData[d];
+                            app.querySelector(`#${d}`).value = userData[d];
                         }
 
                         break;
@@ -198,7 +204,7 @@ const startApp = () => {
             }
 
             // Help the user to see the intro page of the application when they click logout.
-            if ((button === "logoutButton") && (page.id === id)) {
+            if ((button === appData.navbarItems.buttons.logoutButton.id) && (page.id === id)) {
                 classes.remove(dNone);
             }
         }
@@ -213,18 +219,18 @@ const startApp = () => {
         // Set the form target to t
         const t = e.target;
         // Grab the user's data list from storage. Normally, this would be from a database.
-        const users = JSON.parse(localStorage.getItem("users"));
+        const users = JSON.parse(localStorage.getItem(appData.info.users));
         // Set email to an variable for easier use
         let email = t.loginEmail.value;
         // Set continue login to false so we can reject or accept the login.
         let contLogin = false;
         // Reset the login error div attributes.
-        changeAttributes(loginError, {danger: aClass.danger, dNone: dNone}, {}, "");
+        changeClassAndText(loginError, [aClass.danger, dNone], {}, "");
 
         // If the users object exists in storage, look to see if the user exists
         if (users) {
             // If the email entered is in the user object, continue to see if they can log in
-            if (typeof users[email] !== "undefined") {
+            if (typeof users[email] !== undef) {
                 contLogin = true;
             }
         }
@@ -239,13 +245,18 @@ const startApp = () => {
                 dashboardButton.click();
                 // Reset the login form.
                 t.reset();
+
+                // Reset the form validation classes.
+                for (const i of t) {
+                    changeClassAndText(i, {}, dClass.form);
+                }
             } else {
                 // Display an error message if the user entered an invalid password for their account.
-                changeAttributes(loginError, {}, {dNone: dNone}, "Your password is incorrect.");
+                changeClassAndText(loginError, {}, [dNone], lang.login.invalid);
             }
         } else {
             // Show an error message if the user's email is not in the user object
-            changeAttributes(loginError, {}, {dNone: dNone}, "There is no account associated with that email.");
+            changeClassAndText(loginError, {}, [dNone], lang.login.dne);
         }
     }
 
@@ -262,14 +273,14 @@ const startApp = () => {
         // Set a function continue variable to false initally so checks can be performed.
         let contRegister = false;
         // Reset the register error div attributes.
-        changeAttributes(registerError, {danger: aClass.danger, dNone: dNone}, {}, "");
+        changeClassAndText(registerError, [aClass.danger, dNone], {}, "");
 
         // If the form has no errors, continue. Errors will be displayed by default through the function called by register.
         if (register) {
             // Set the entered email to a re-useable variable
             const email = t.registerEmail.value;
             // Grab the user object from storage. Normally, this would be from a database.
-            const existingUsers = JSON.parse(localStorage.getItem("users"));
+            const existingUsers = JSON.parse(localStorage.getItem(appData.info.users));
 
             // If there are no users yet, continue.
             if (existingUsers === null) {
@@ -279,7 +290,7 @@ const startApp = () => {
                 if (existingUsers[email] === null) {
                     contRegister = true;
                     // If the email entered does not exist in the user object, continue. This will be true when there are existing users and the user object is not null.
-                } else if (typeof existingUsers[email] === "undefined") {
+                } else if (typeof existingUsers[email] === undef) {
                     contRegister = true;
                 }
             }
@@ -297,7 +308,7 @@ const startApp = () => {
                 };
 
                 // Set the user object in storage to the new user object with the newly created user.
-                localStorage.setItem("users", JSON.stringify(user));
+                localStorage.setItem(appData.info.users, JSON.stringify(user));
                 // Copy the user data to a global variable for use throughout the application.
                 userData = Object.assign({}, user[email]);
                 // Simulate a click on the dashboardButton to simulate changing pages.
@@ -305,13 +316,13 @@ const startApp = () => {
                 // Reset the register form.
                 t.reset();
 
-                // Remove the validation attributes from the register form inputs.
+                // Reset the form validation classes.
                 for (const i of t) {
-                    i.classList.remove("is-valid", "is-invalid");
+                    changeClassAndText(i, {}, dClass.form);
                 }
             } else {
                 // Display an error if the selected email is already in use.
-                changeAttributes(registerError, {}, {dNone: dNone}, "That email is already in use.");
+                changeClassAndText(registerError, {}, [dNone], lang.register.exists);
             }
         }
     }
@@ -323,14 +334,14 @@ const startApp = () => {
         // Set continue to false so we can perform checks.
         let contLists = false;
         // Grab the taskList object from storage. Normally, this would be from a database.
-        const taskList = JSON.parse(localStorage.getItem("taskList"));
+        const taskList = JSON.parse(localStorage.getItem(appData.info.taskList));
         // Initialize a variable to hold the HTML for the To-Do Lists to be displayed.
         let taskHolder = "";
 
         // Check if the taskList object exists.
         if (taskList) {
             // If the user has task lists saved at one point, continue.
-            if (typeof taskList[userData.email] !== "undefined") {
+            if (typeof taskList[userData.email] !== undef) {
                 // If the user actually has task lists, and hasn't deleted them all, then show their tasks.
                 if (Object.keys(taskList[userData.email]).length !== 0) {
                     contLists = true;
@@ -366,8 +377,8 @@ const startApp = () => {
                             ${taskListItem.taskName}
                        </div>
                        <div>
-                           <button id='list-${listData}' type='button' class='btn btn-custom taskViewButton'>View List</button>
-                           <button id='del-${listData}' type='button' class='btn btn-danger taskDeleteButton'>Delete List</button>
+                           <button id='list-${listData}' type='button' class='btn btn-custom ${appData.app.buttons.viewList}'>${lang.vList}</button>
+                           <button id='del-${listData}' type='button' class='btn btn-danger ${appData.app.buttons.deleteList}'>${lang.dList}</button>
                        </div>
                     </li>`;
             }
@@ -376,7 +387,7 @@ const startApp = () => {
             todoTaskListContainer.innerHTML = taskHolder;
         } else {
             // Show a message if the user has no task lists.
-            todoTaskListContainer.innerHTML = "<p>You currently do not have any To-Do Lists made. Create one now!</p>"
+            todoTaskListContainer.innerHTML = `<p>${lang.dashboard.noLists}</p>`
         }
     }
 
@@ -390,20 +401,20 @@ const startApp = () => {
         // Grab the ID string and extract the number from the string (in format list-####).
         id = id.substring(5, id.length);
         // Grab the taskList object from storage. Normally, this would be from a database.
-        const taskList = JSON.parse(localStorage.getItem("taskList"));
+        const taskList = JSON.parse(localStorage.getItem(appData.info.taskList));
 
         // Continue if the task list exists.
-        if (taskList[userData.email][id] !== "undefined") {
+        if (taskList[userData.email][id] !== undef) {
             // Set the To-Do Task List to a variable for easier access
             const thisTaskList = taskList[userData.email][id];
             // Set the taskNum variable to the list's number so it can be updated.
-            todoTaskForm.querySelector("#taskNum").value = id;
+            todoTaskForm.querySelector(`#${appData.app.id.taskNum}`).value = id;
             // Set the name of the task list in the form.
-            todoTaskForm.querySelector("#todoTaskListName").value = thisTaskList.taskName;
+            todoTaskForm.querySelector(`#${appData.app.id.taskListName}`).value = thisTaskList.taskName;
             // At least one task is required to create a list, so we set this required input's task name and done attribute to the first
             // item from the task list.
-            todoTaskForm.querySelector("#requiredTask").value = thisTaskList.tasks[0].task;
-            todoTaskForm.querySelector("#requiredTaskDone").checked = thisTaskList.tasks[0].done;
+            todoTaskForm.querySelector(`#${dClass.requiredTask.input}`).value = thisTaskList.tasks[0].task;
+            todoTaskForm.querySelector(`#${dClass.requiredTask.checkbox}`).checked = thisTaskList.tasks[0].done;
 
             // Loop through the task list's tasks.
             for (const i in thisTaskList.tasks) {
@@ -412,12 +423,17 @@ const startApp = () => {
                     // Set the done variable to checked or an empty string based on whether the task was marked done or not.
                     const checked = thisTaskList.tasks[i].done ? "checked" : "";
                     // Add the task item to the page.
-                    taskItemContainer.appendChild(addTaskItem(checked, thisTaskList.tasks[i].task, i));
+                    taskItemContainer.appendChild(addTaskItem(checked, thisTaskList.tasks[i].task, parseInt(i) + 1));
                 }
             }
         }
     }
 
+    /**
+     * Called when the user clicks the Add Task Item button. If not invoked like this,
+     * then the new task input won't be added to the page.
+     *
+     */
     const addTaskItemToContainer = () => {
         taskItemContainer.appendChild(addTaskItem());
     }
@@ -434,7 +450,7 @@ const startApp = () => {
 
         // If the node that invoked the function was a form, classlist will be undefined. Set the target to 'e' for when button nodes
         // invoke the function, otherwise set it it to e.target for forms.
-        if (typeof e.classList !== "undefined") {
+        if (typeof e.classList !== undef) {
             t = e;
         } else {
             t = e.target;
@@ -442,14 +458,14 @@ const startApp = () => {
 
         // Check if the node that triggered the function has the deleteTaskItem or trash can 'fa' icon. This means the user wanted to
         // remove the task item from the form.
-        if (t.classList.contains("deleteTaskItem") || t.classList.contains("fa-trash-alt")) {
+        if (t.classList.contains(appData.app.classes.taskDelete) || t.classList.contains(appData.app.classes.trash)) {
             // Find the task item's parent container.
-            const container = t.closest(".list-group");
+            const container = t.closest(`.${appData.app.classes.listGroup}`);
 
             // If the container is not the required one for the form, remove it from the page.
-            if (container.id !== "noDeleteTask") {
+            if (container.id !== dClass.requiredTask.container) {
                 // Decrease task item counter by 1 for form validation purposes.
-                taskItemNum--;
+                taskItemNum -= 1;
                 container.remove();
             }
         }
@@ -469,13 +485,13 @@ const startApp = () => {
         let count = 0;
 
         // Grab all of the task items and the checkbox that indicates if a task is done
-        const taskItems = taskItemContainer.getElementsByClassName("taskItem");
-        const taskDone = taskItemContainer.getElementsByClassName("taskItemDone");
+        const taskItems = taskItemContainer.getElementsByClassName(appData.app.classes.taskItem);
+        const taskDone = taskItemContainer.getElementsByClassName(appData.app.classes.taskItemDone);
 
         // Loop through the form elements.
         for (const i of t) {
             // If the element has the class taskItem, add it to the tasks array
-            if (i.classList.contains("taskItem")) {
+            if (i.classList.contains(appData.app.classes.taskItem)) {
                 // Add the current (based on count) task to the task array. This will only run for form elements that have
                 // the taskItem class, so this will not capture invalid data, and we can use the index of the taskItems and
                 // taskDone objects because of this.
@@ -490,14 +506,14 @@ const startApp = () => {
         }
 
         // Grab the taskList object from storage. Normally, this would be from a database.
-        const existingTasks = JSON.parse(localStorage.getItem("taskList"));
+        const existingTasks = JSON.parse(localStorage.getItem(appData.info.taskList));
 
         // If there are no tasks, allow creation.
         if (existingTasks === null) {
             taskNum = 1;
         } else {
             // If the user has not created any task lists yet, set the index of the task list to 1.
-            if (typeof existingTasks[userData.email] === "undefined") {
+            if (typeof existingTasks[userData.email] === undef) {
                 taskNum = 1;
             } else {
                 // If we're adding a task list, we want to get the number of task lists the user has created, from the
@@ -515,7 +531,7 @@ const startApp = () => {
         const myTasks = Object.assign({}, existingTasks);
 
         // If the user has not created any tasks yet, set their task list object to an empty object.
-        if (typeof myTasks[userData.email] === "undefined") {
+        if (typeof myTasks[userData.email] === undef) {
             myTasks[userData.email] = {};
         }
 
@@ -526,9 +542,9 @@ const startApp = () => {
         }
 
         // Set the task list object to the modified task list object.
-        localStorage.setItem("taskList", JSON.stringify(myTasks));
+        localStorage.setItem(appData.info.taskList, JSON.stringify(myTasks));
         // Tell the user we have added their task list.
-        changeAttributes(todoTaskListError, {success: aClass.success}, aClass, "We have saved your To-Do List.");
+        changeClassAndText(todoTaskListError, [aClass.success], aClass, lang.taskList.saved);
         // Reset the task list form with the function below.
         resetTodoTaskListForm();
     }
@@ -543,11 +559,11 @@ const startApp = () => {
         const t = e.target;
 
         // If the target event has the class taskDeleteButton, then the user likely wanted to delete the respective To-Do Task List.
-        if (t.classList.contains("taskDeleteButton")) {
+        if (t.classList.contains(appData.app.buttons.deleteList)) {
             // Grab the taskList object from storage. Normally, this would be from a database.
-            const taskList = JSON.parse(localStorage.getItem("taskList"));
+            const taskList = JSON.parse(localStorage.getItem(appData.info.taskList));
             // Find the parent container for the selected To-Do Task List.
-            const container = t.closest(".list-group-item");
+            const container = t.closest(`.${appData.app.classes.listItem}`);
             // Remove the element from the page.
             container.remove();
 
@@ -556,12 +572,12 @@ const startApp = () => {
             // Delete the task list from the task list object.
             delete taskList[userData.email][id];
             // Updated the task list object with the deleted entry.
-            localStorage.setItem("taskList", JSON.stringify(taskList));
+            localStorage.setItem(appData.info.taskList, JSON.stringify(taskList));
 
             // Check to see if the user has deleted all of their To-Do Task Lists.
             if (Object.keys(taskList[userData.email]).length === 0) {
                 // Show a message if the user has no more task lists.
-                todoTaskListContainer.innerHTML = "<p>You currently do not have any To-Do Lists made. Create one now!</p>"
+                todoTaskListContainer.innerHTML = `<p>${lang.dashboard.noList}</p>`;
             }
         }
     }
@@ -571,20 +587,24 @@ const startApp = () => {
      */
     const resetTodoTaskListForm = () => {
         // Loop through the delete buttons to invoke the deleteTaskItem function in order to actually delete each task input.
-        for (const delButton of taskItemContainer.getElementsByClassName("deleteTaskItem")) {
+        for (const delButton of taskItemContainer.getElementsByClassName(appData.app.classes.taskDelete)) {
             // Use setTimeout to avoid not deleting all of the task input nodes.
             setTimeout(() => {
                 deleteTaskItem(delButton);
             }, 100);
         }
 
+        // Reset the form validation classes.
         for (const i of todoTaskForm) {
-            i.classList.remove("is-valid", "is-invalid");
+            changeClassAndText(i, {}, dClass.form);
         }
 
+        // Reset the task list number so we can store task lists properly.
+        todoTaskForm.querySelector(`#${appData.app.id.taskNum}`).value = 0;
         // Reset the remaining form elements.
         todoTaskForm.reset();
-        taskItemNum = 0;
+        // Set the task item count to 1 so we can display inputs properly on the form.
+        taskItemNum = 1;
     }
 
     /**
@@ -600,7 +620,7 @@ const startApp = () => {
         // Set a continue value to true that can be changed to false after checking a few things.
         let contSettings = true;
         // Rset the settings form error div.
-        changeAttributes(settingsError, {danger: aClass.danger, dNone: dNone}, {}, "");
+        changeClassAndText(settingsError, [aClass.danger, dNone], {}, "");
 
         // If the form elements all passed validation checks, continue. Errors will be displayed by default.
         if (settings) {
@@ -609,13 +629,13 @@ const startApp = () => {
             // Capture the email entered on the form.
             const email = t.email.value;
             // Grab the user object from storage.
-            const existingUsers = JSON.parse(localStorage.getItem("users"));
+            const existingUsers = JSON.parse(localStorage.getItem(appData.info.users));
 
             // If the user object exists, continue.
             if (existingUsers) {
                 // If the user object does not contain the object for the user with the old email, return false. This should always be true though
                 // because we have no way to delete users in this application, unless the user deletes their localstorage while logged in.
-                if ((existingUsers[oldEmail] === null) || (typeof existingUsers[oldEmail] === "undefined")) {
+                if ((existingUsers[oldEmail] === null) || (typeof existingUsers[oldEmail] === undef)) {
                     contSettings = false;
                 }
             }
@@ -653,16 +673,18 @@ const startApp = () => {
                             // Delete the old user object.
                             delete user[oldEmail];
                             // Grab the task list object from storage.
-                            const taskList = JSON.parse(localStorage.getItem("taskList"));
+                            const taskList = JSON.parse(localStorage.getItem(appData.info.taskList));
 
                             // If the user has created task lists at some point, update the task list object.
-                            if ((typeof taskList[oldEmail] !== "undefined")) {
-                                // Copy the old user task list object to the new email.
-                                taskList[email] = taskList[oldEmail];
-                                // Delete the old user task list object.
-                                delete taskList[oldEmail];
-                                // Update the task list object in storage.
-                                localStorage.setItem("taskList", JSON.stringify(taskList));
+                            if (taskList !== null) {
+                                if ((typeof taskList[oldEmail] !== undef)) {
+                                    // Copy the old user task list object to the new email.
+                                    taskList[email] = taskList[oldEmail];
+                                    // Delete the old user task list object.
+                                    delete taskList[oldEmail];
+                                    // Update the task list object in storage.
+                                    localStorage.setItem(appData.info.taskList, JSON.stringify(taskList));
+                                }
                             }
                         }
                     }
@@ -670,28 +692,28 @@ const startApp = () => {
                     // If the user can change their email, or by default, continue.
                     if (canChangeEmail) {
                         // Update the user object in storage.
-                        localStorage.setItem("users", JSON.stringify(user));
+                        localStorage.setItem(appData.info.users, JSON.stringify(user));
                         // Set the userData to the new user object for the current user.
                         userData = user[email];
 
                         // Alert the user that their settings have changed.
-                        changeAttributes(settingsError, {success: aClass.success}, aClass, "We have updated your settings");
+                        changeClassAndText(settingsError, [aClass.success], aClass, lang.settings.saved);
 
-                        // Loop through the settings form and remove validation styling.
+                        // Reset the form validation classes.
                         for (const i of t) {
-                            i.classList.remove("is-valid", "is-invalid");
+                            changeClassAndText(i, {}, dClass.form);
                         }
                     } else {
                         // Display a message to the user if the email they wanted to change to is already in use.
-                        changeAttributes(settingsError, {}, {dNone: dNone, danger: aClass.danger}, "That email is already in use");
+                        changeClassAndText(settingsError, {}, [dNone, aClass.danger], lang.settings.exists);
                     }
                 } else {
                     // Display a message to the user if they have not changed any settings.
-                    changeAttributes(settingsError, {info: aClass.info}, {dNone: dNone}, "You have not changed any setting");
+                    changeClassAndText(settingsError, [aClass.info], [dNone], lang.settings.unchanged);
                 }
             } else {
                 // Display an error to the user that their account doesn't exist.
-                changeAttributes(settingsError, {}, {dNone: dNone}, "We couldn't find your account.");
+                changeClassAndText(settingsError, {}, [dNone], lang.settings.dne);
             }
         }
     }
@@ -710,7 +732,7 @@ const startApp = () => {
         if (inputs.type === "change") {
             // Ignore validation for the login form because when the form is submitted, it will take care of checking the values. We don't
             // need to validate the login form values when the form element is changed. Did not set up form validation for the To-Do Task List form.
-            if (inputs.target.form.id !== "loginForm") {
+            if (inputs.target.form.id !== appData.login.form.id) {
                 validateInputs(inputs.target);
             }
         } else {
@@ -743,7 +765,7 @@ const startApp = () => {
         let nodeID = formItem.id;
 
         // Following IF statement is used for the To-Do Task List form since it works differently than other forms.
-        if ((formItem.classList.contains("taskItem")) || formItem.classList.contains("taskItemDone")) {
+        if ((formItem.classList.contains(appData.app.classes.taskItem)) || formItem.classList.contains(appData.app.classes.taskItemDone)) {
             // If the form element is a checkbox, skip validation as it's not needed.
             if (formItem.type === "checkbox") {
                 return;
@@ -751,17 +773,17 @@ const startApp = () => {
 
             // If the form element's ID is blank (which is all added elements), then set the errorNode to the proper node.
             if (nodeID === "") {
-                errorNode = app.querySelector("#task-" + formItem.dataset.tasknum);
-                nodeID = "taskItem";
+                errorNode = app.querySelector(`#task-${formItem.dataset.tasknum}`);
+                nodeID = appData.app.classes.taskItem;
             }
         }
 
         // Set a variable to the length of the form input value.
         const iLength = formItem.value.length;
 
-        if (typeof errorNode === "undefined") {
+        if (typeof errorNode === undef) {
             // Grab the form input's ID to grab it's respective error div.
-            errorNode = app.querySelector("#" + nodeID + "Error");
+            errorNode = app.querySelector(`#${nodeID}Error`);
         }
 
         // Do nothing if the input is the submit button
@@ -773,9 +795,9 @@ const startApp = () => {
             // that utilize the same data as other inputs for validation.
             const item = vRules[nodeID] || vRules[vRules.alias[nodeID]];
             // Remove the form input's validation classes in case it has any.
-            changeAttributes(formItem, {}, {invalid: fClass.invalid, valid: fClass.valid}, "");
+            changeClassAndText(formItem, {}, [fClass.invalid, fClass.valid], "");
             // Reset the form input's error div.
-            changeAttributes(errorNode, {}, {block: appData.classes.block}, "");
+            changeClassAndText(errorNode, {}, [dClass.block], "");
 
             // item.text grabs the form input's error text
             // Same for item.min.text and item.max.text. We use the object to grab the respective
@@ -810,41 +832,17 @@ const startApp = () => {
 
         if (errors) {
             // Style the form input to show it is in error.
-            changeAttributes(formItem, {invalid: fClass.invalid}, {}, "");
+            changeClassAndText(formItem, [fClass.invalid]);
             // Show the form input's error div.
-            changeAttributes(errorNode, {block: appData.classes.block}, {}, errorText);
+            changeClassAndText(errorNode, [dClass.block], {}, errorText);
             // Return true to indicate the form input has errors.
             return true;
         } else {
             // Style the form input to show it is valid.
-            changeAttributes(formItem, {valid: fClass.valid}, {}, "");
+            changeClassAndText(formItem, [fClass.valid]);
             // Return false to indicate the form input is valid based on our rules.
             return false;
         }
-    }
-
-    /**
-     * Take a node to remove and add classes from supplied objects to the node. Then set the inner
-     * text of the node to the desired value.
-     *
-     * @param {object} node The node to modify.
-     * @param {object} classesAdd Classes to add to the node.
-     * @param {object} classesRemove Classes to remove from the node.
-     * @param {string} text Inner text for the node to be set.
-     */
-    const changeAttributes = (node, classesAdd, classesRemove, text) => {
-        // Remove all classes desired.
-        for (const remove in classesRemove) {
-            node.classList.remove(classesRemove[remove]);
-        }
-
-        // Add all new classes to the node.
-        for (const add in classesAdd) {
-            node.classList.add(classesAdd[add]);
-        }
-
-        // Set the inner text of the node.
-        node.innerText = text;
     }
 
     /**
@@ -859,36 +857,36 @@ const startApp = () => {
         const id = e.target.id;
 
         // Send the application to the right form submit function.
-        if (id === "loginForm") {
+        if (id === appData.login.form.id) {
             doLogin(e);
-        } else if (id === "registerForm") {
+        } else if (id === appData.register.form.id) {
             doRegister(e);
-        } else if (id === "todoTaskForm") {
+        } else if (id === appData.todoTaskList.form.id) {
             savetodoTaskList(e);
-        } else if (id === "settingsForm") {
+        } else if (id === appData.settings.form.id) {
             doSettings(e);
         }
     }
 
     // DOM References
-    const app = document.getElementById("app");
-    const navbar = document.getElementById("navbar");
-    const guestPage = document.getElementsByClassName("guestPage");
-    const userPage = document.getElementsByClassName("userPage");
-    const guestButtons = document.getElementsByClassName("guestButton");
-    const userButtons = document.getElementsByClassName("userButton");
-    const dashboardButton = document.getElementById("dashboardPage");
-    const dashboardPage = document.getElementById("dashboard");
-    const loginError = document.getElementById("loginError");
-    const registerError = document.getElementById("registerError");
-    const settingsError = document.getElementById("settingsError");
-    const createtodoTaskListButton = document.getElementById("todoTaskListPage");
-    const todoTaskListContainer = document.getElementById("todoTaskListContainer");
-    const todoTaskListHeader = document.getElementById("todoTaskListHeader");
-    const addTaskItemButton = document.getElementById("addTaskItemButton");
-    const todoTaskForm = document.getElementById("todoTaskForm");
-    const todoTaskListError = document.getElementById("todoTaskListError");
-    const taskItemContainer = document.getElementById("taskItemContainer");
+    const app = document.getElementById(appData.info.container);
+    const navbar = document.getElementById(appData.navbarItems.nav.id);
+    const guestPage = document.getElementsByClassName(appData.app.guest.page);
+    const userPage = document.getElementsByClassName(appData.app.user.page);
+    const guestButtons = document.getElementsByClassName(appData.app.guest.button);
+    const userButtons = document.getElementsByClassName(appData.app.user.button);
+    const dashboardButton = document.getElementById(appData.dashboard.page);
+    const dashboardPage = document.getElementById(appData.dashboard.id);
+    const loginError = document.getElementById(appData.login.form.error);
+    const registerError = document.getElementById(appData.register.form.error);
+    const settingsError = document.getElementById(appData.settings.form.error);
+    const createtodoTaskListButton = document.getElementById(appData.dashboard.button.id);
+    const todoTaskListContainer = document.getElementById(dClass.dashboard);
+    const todoTaskListHeader = document.getElementById(appData.todoTaskList.title.id);
+    const addTaskItemButton = document.getElementById(appData.todoTaskList.button.id);
+    const todoTaskForm = document.getElementById(appData.todoTaskList.form.id);
+    const todoTaskListError = document.getElementById(appData.todoTaskList.form.error);
+    const taskItemContainer = document.getElementById(dClass.requiredTask.parent);
 
     // Event listeners
     navbar.addEventListener("click", changeScreen);
@@ -901,9 +899,6 @@ const startApp = () => {
     addTaskItemButton.addEventListener("click", addTaskItemToContainer);
 }
 
-// Useful data to the application.
-const errorDivClasses = ["alert", "alert-danger", "d-none"];
-
 /**
  * Load the application content from a JSON file to setup the application.
  */
@@ -912,6 +907,8 @@ const loadAppData = async () => {
     const response = await fetch(projectDataURL);
     // Set a global variable to the json result.
     appData = await response.json();
+    undef = appData.info.undefined;
+    lang = appData.lang;
     dClass = appData.classes;
     dNone = dClass.dNone;
     aClass = dClass.alert;
@@ -919,172 +916,208 @@ const loadAppData = async () => {
 }
 
 /**
+ * Add the navbar to the application.
  *
  */
 const loadNavbar = () => {
+    // Grab the navbar JSON info.
     const navbarData = appData.navbarItems
     const navItems = navbarData.buttons;
+    // Create the elements needed for the navbar.
     const navDiv = document.createElement("div");
     const nav = document.createElement("nav");
-    const mItemClass = "p-3 py-4";
+    // Set a future HTML string to an empty string.
     let navData = "";
 
+    // Loop through all the buttons in the navbar.
     for (const mItem in navItems) {
+        // Set the button to a re-useable variable.
         const cItem = navItems[mItem];
-        navData += `<a id="${mItem}" class="${mItemClass} ${cItem.class}" href="${cItem.href}">${cItem.text}</a>`;
+        // Add the button to an HTML string of all the buttons.
+        navData += `<a id="${cItem.id}" class="${navbarData.buttonClasses} ${cItem.class}" href="${cItem.href}">${cItem.text}</a>`;
     }
 
-    for (const navStyle of navbarData.classes) {
-        navDiv.classList.add(navStyle);
-    }
+    // Set classes for the new elements.
+    changeClassAndText(navDiv, navbarData.classes);
+    changeClassAndText(nav, navbarData.nav.classes);
 
-    for (const navStyle of navbarData.nav.classes) {
-        nav.classList.add(navStyle);
-    }
-
+    // Set basic data for the new elements, including the innerHTML for the navbar and it's container.
     nav.id = navbarData.nav.id;
     nav.innerHTML = navData;
     navDiv.innerHTML = `<h5 class="my-0 mr-md-auto font-weight-normal">${appData.info.title}</h5>`;
+    // Append the navbar to the container.
     navDiv.appendChild(nav);
+    // Add the navbar to the application.
     app.prepend(navDiv);
 }
 
+/**
+ * Add a page to the application.
+ *
+ * @param {string} p String representation of the page to add.
+ * @param {boolean} hasForm Indicates whether the page has a form to use.
+ */
 const loadPage = async (p, hasForm = false) => {
+    // Get the page's JSON data.
     const page = appData[p];
+    // Create elements to display the page.
     const pageDiv = document.createElement("div");
     const childDiv = document.createElement("div");
     const titleH1 = document.createElement("div");
     const hr = document.createElement("hr");
 
-    for (const divStyle of page.classes) {
-        pageDiv.classList.add(divStyle);
-    }
+    // Set classes for the new elements.
+    changeClassAndText(pageDiv, page.classes);
+    changeClassAndText(childDiv, page.child.classes);
+    changeClassAndText(titleH1, page.title.classes);
 
-    for (const divStyle of page.child.classes) {
-        childDiv.classList.add(divStyle);
-    }
-
-    for (const titleStyle of page.title.classes) {
-        titleH1.classList.add(titleStyle);
-    }
-
+    // Set basic info for the new elements.
     pageDiv.id = p;
     titleH1.id = page.title.id;
     titleH1.innerText = page.title.name;
 
+    // Add the title to the page.
     childDiv.appendChild(titleH1);
 
-    if ((p === "dashboard") || (p === "todoTaskList")) {
+    // Add a button between the title and line break if the page meets the requirements.
+    if ((page.id === appData.dashboard.id) || (page.id === appData.todoTaskList.id)) {
         childDiv.appendChild(addButton(page.button.id, page.button.text, dClass.taskButtonContainer, dClass.taskButton));
     }
 
+    // Add the line break to the page.
     childDiv.appendChild(hr);
 
-    if (p === "intro") {
+    // If the page is the intro or dashboard, add their needed content.
+    if (page.id === appData.intro.id) {
         childDiv.appendChild(introData());
-    } else if (p === "dashboard") {
+    } else if (page.id === appData.dashboard.id) {
         childDiv.appendChild(dashboardData());
     }
 
+    // If the page needs a form, load the form and append it to the page.
     if (hasForm) {
         childDiv.appendChild(loadForm(page));
     }
 
+    // Append the child container to the page.
     pageDiv.appendChild(childDiv);
+    // Add the page to the application.
     app.appendChild(pageDiv);
 }
 
+/**
+ * Add a form to the page.
+ *
+ * @param {object} page Object with the required page's JSON data.
+ */
 const loadForm = (page) => {
+    // Create some elements for the form.
     const form = document.createElement("form");
     const errorDiv = document.createElement("div");
     const submit = document.createElement("button");
 
-    for (const errorStyle of errorDivClasses) {
-        errorDiv.classList.add(errorStyle);
-    }
+    // Set classes for the new elements.
+    changeClassAndText(errorDiv, [dClass.error, aClass.danger, dNone]);
+    changeClassAndText(submit, dClass.submitButton);
+    changeClassAndText(form, page.form.classes);
 
-    for (const buttonStyle of dClass.submitButton) {
-        submit.classList.add(buttonStyle);
-    }
-
+    // Some submit buttons may have extra classes. Add those.
     if (page.submit.classes) {
-        for (const buttonStyle of page.submit.classes) {
-            submit.classList.add(buttonStyle);
-        }
+        changeClassAndText(submit, page.submit.classes);
     }
 
-    for (const formStyle of page.form.classes) {
-        form.classList.add(formStyle);
-    }
-
+    // Set some basic info for the form elements.
     form.id = page.form.id;
     errorDiv.id = page.form.error;
     errorDiv.setAttribute("role", "alert");
     form.appendChild(errorDiv);
-    submit.type = "Submit";
+    submit.type = lang.submit;
     submit.innerText = page.submit.text;
 
+    // Loop through the form inputs.
     for (const input of page.inputs) {
+        // Create a parent container so we can set it later.
         let parentContainer;
 
+        // Hidden inputs need different attributes, so they have their own set of checks.
         if (input.type === "hidden") {
+            // Create the hidden input.
             const inputField = document.createElement("input");
+            // Set the attributes for the input.
             inputField.id = input.id;
             inputField.type = input.type;
             inputField.value = input.value;
             inputField.required = input.required;
+            // Set the parent container to the input itself.
             parentContainer = inputField;
         } else {
+            // Create the elements needed to display the form input.
             const inputContainer = document.createElement("div");
             const inputChild = document.createElement("div");
             const inputField = document.createElement("input");
             const inputLabel = document.createElement("label");
             const inputError = document.createElement("div");
 
+            // Set some basic attributes for the form input elements.
             inputField.type = input.type;
             inputField.id = input.id;
             inputField.required = input.required;
-            inputField.classList.add(input.class);
+            changeClassAndText(inputField, input.class);
             inputField.setAttribute("placeholder", input.label);
             inputLabel.htmlFor = input.id;
             inputLabel.innerText = input.label;
 
+            // Checkboxes need different elements and styles, so check for the input type.
             if (input.type !== "checkbox") {
+                // Set the parent container to the input's container.
                 parentContainer = inputContainer;
-                inputContainer.classList.add(dClass.inputContainer);
+                // Set the styling for the input's container.
+                changeClassAndText(inputContainer, dClass.inputContainer);
             } else {
+                // Set the parent container to a child container.
                 parentContainer = inputChild;
-                inputChild.classList.add(dClass.checkboxChild);
-                inputLabel.classList.add(dClass.checkboxLabel);
-
-                for (const contClasses of dClass.checkBoxContainer) {
-                    inputContainer.classList.add(contClasses);
-                }
+                // Set the styling for the input's containers.
+                changeClassAndText(inputChild, dClass.checkboxChild);
+                changeClassAndText(inputLabel, dClass.checkboxLabel);
+                changeClassAndText(inputContainer, dClass.checkBoxContainer);
             }
 
+            // Add the input field and the input label to the form.
             parentContainer.appendChild(inputField);
             parentContainer.appendChild(inputLabel);
 
+            // Check if the form has an error help div.
             if (input.error) {
-                inputError.classList.add(dClass.inputError);
+                // Set the styling for the error help div.
+                changeClassAndText(inputError, [dClass.inputError]);
+                // Set the ID for the div.
                 inputError.id = input.error;
+                // Add the div to the form.
                 parentContainer.appendChild(inputError);
             }
 
+            // Checkboxes have a different layout and have to be added differently.
             if (input.type === "checkbox") {
+                // Add the input's container to the parent.
                 inputContainer.appendChild(parentContainer);
+                // Set the parent container to the input container.
                 parentContainer = inputContainer;
             }
         }
 
+        // Add the form element to the form.
         form.appendChild(parentContainer);
     }
 
-    if (page.form.id === "todoTaskForm") {
+    // Add the To-Do Task List to the form if that's the form we need. This one is different
+    // from the other forms in the apps, so it needs a function to handle the uniqueness.
+    if (page.form.id === appData.todoTaskList.form.id) {
         form.appendChild(insertTodoTaskList());
     }
 
+    // Add the submit button to the form.
     form.appendChild(submit);
+    // Return the form element so that it can be displayed.
     return form;
 }
 
@@ -1114,20 +1147,23 @@ const dashboardData = () => {
     // Create a UL element that will hold the user's To-Do Task Lists.
     const ul = document.createElement("ul");
     // Add the UL's attributes.
-    ul.classList.add("list-group");
-    ul.id = "todoTaskListContainer";
+    changeClassAndText(ul, ["list-group"]);
+    ul.id = dClass.dashboard;
     // Return the UL node.
     return ul;
 }
 
-// Return the node to
+/**
+ * Return the newly created task item node to the calling function.
+ */
 const insertTodoTaskList = () => {
+    const tClass = dClass.requiredTask;
     // Create a div that will hold the task list form's inputs.
     const tasksContainer = document.createElement("div");
     // Set the div's attributes.
-    tasksContainer.id = "taskItemContainer";
+    tasksContainer.id = tClass.parent;
     // Add the required first task for creating / editing a To-Do Task List.
-    tasksContainer.appendChild(addTaskItem("", "", 0, "noDeleteTask", "requiredTaskDone", "requiredTask", true, "requiredTaskError"));
+    tasksContainer.appendChild(addTaskItem("", "", 0, tClass.container, tClass.checkbox, tClass.input, true, tClass.error));
     // Return the To-Do Task List container.
     return tasksContainer;
 }
@@ -1149,62 +1185,30 @@ const insertTodoTaskList = () => {
  */
 const addTaskItem = (...args) => {
     // Setup the variables for the function based on their order.
-    let taskDone = args[0];
-    let taskValue = args[1];
-    let taskNum = parseInt(args[2]);
-    let newItemID = args[3];
-    let checkboxID = args[4];
-    let inputID = args[5];
-    let isRequired = "";
-    let errorID;
+    let taskDone, taskValue, taskNum, newItemID, checkboxID, inputID, isRequired, errorID;
 
     // Set the following variables to a default empty string if it was not passed to the function.
-    if (typeof taskDone === "undefined") {
-        taskDone = "";
-    }
-
-    if (typeof taskValue === "undefined") {
-        taskValue = "";
-    }
-
-    if (typeof newItemID === "undefined") {
-        newItemID = "";
-    }
-
-    if (typeof checkboxID === "undefined") {
-        checkboxID = "";
-    }
-
-    if (typeof inputID === "undefined") {
-        inputID = "";
-    }
+    taskDone = (typeof args[0] !== undef) ? args[0] : "";
+    taskValue = (typeof args[1] !== undef) ? args[1] : "";
+    taskNum = (typeof args[2] !== undef) ? parseInt(args[2]) : 0;
+    newItemID = (typeof args[3] !== undef) ? args[3] : "";
+    checkboxID = (typeof args[4] !== undef) ? args[4] : "";
+    inputID = (typeof args[5] !== undef) ? args[5] : "";
+    isRequired = args[6] ? "required" : "";
 
     // If we're adding a new element with the button and not because the function is being called by the view task function,
     // then we want to grab the current highest taskItemNum from the form and use that + 1 for the new form element.
-    if (taskValue === "") {
-        if (taskNum !== 0) {
-            taskNum = taskItemNum + 1;
-        }
+    if (taskNum === 0) {
+        taskNum = taskItemNum + 1;
     }
 
-    // Set the task done to required if it needs to be (only used for the first item in the task list).
-    if (args[6]) {
-        isRequired = "required";
-    }
-
-    // Check to see if the function was passed an argument for the value of the error div ID.
-    if (args[7]) {
-        // Set the error div ID to the passed argument.
-        errorID = args[7];
-    } else {
-        // Otherwise, set it to the following format.
-        errorID = `task-${taskNum}`;
-    }
+    // Set the task error ID down here because we need the proper task ID.
+    errorID = args[7] ? args[7] : `task-${taskNum}`;
 
     // Create a new page element.
     const newItem = document.createElement("div");
     // Add the required class to the new element.
-    newItem.classList.add("list-group");
+    changeClassAndText(newItem, ["list-group"]);
     // Add the id to the new element, if it should have one.
     newItem.id = newItemID;
     // Set the HTML of new element to the required HTML.
@@ -1218,23 +1222,23 @@ const addTaskItem = (...args) => {
            <input type='text' id='${inputID}' class='form-control taskItem' placeholder='Task' value='${taskValue}' data-taskNum='${taskNum}' ${isRequired} />
            <div class='input-group-append'>
                <div class='input-group-text'>
-                   <button type='button' class='btn btn-danger deleteTaskItem'><i class='far fa-trash-alt'></i></button>
+                   <button type='button' class='btn btn-danger ${appData.app.classes.taskDelete}'><i class='far fa-trash-alt'></i></button>
                </div>
            </div>
         </div>
-        <div id='${errorID}' class='invalid-feedback'></div>`;
+        <div id='${errorID}' class='${dClass.inputError}'></div>`;
 
     // Update the taskItemNum to the new value.
     taskItemNum = taskNum;
 
     // Set focus to the newly created input.
-    newItem.querySelector(".taskItem").focus();
+    newItem.querySelector(`.${appData.app.classes.taskItem}`).focus();
 
     return newItem;
 }
 
 /**
- * Return a button to the calling function through a parent div node.
+ * Return a button to the calling function with a parent div node.
  *
  * @param {string} id ID of the button.
  * @param {string} text Text for the button.
@@ -1252,20 +1256,53 @@ const addButton = (id, text, leadClasses, buttonClasses) => {
     addButton.innerText = text;
 
     // Loop through the button's container classes and add them.
-    for (const leadClass of leadClasses) {
-        lead.classList.add(leadClass);
-    }
-
+    changeClassAndText(lead, leadClasses);
     // Loop through the button's classes and add them.
-    for (const buttonClass of buttonClasses) {
-        addButton.classList.add(buttonClass);
-    }
+    changeClassAndText(addButton, buttonClasses);
 
     // Add the button to it's container.
     lead.appendChild(addButton);
 
     // Return the container node.
     return lead;
+}
+
+/**
+ * Take a node to remove and add classes from supplied objects to the node. Then set the inner
+ * text of the node to the desired value.
+ *
+ * @param {object} node The node to modify.
+ * @param {object} classesAdd Classes to add to the node.
+ * @param {object} classesRemove Classes to remove from the node.
+ * @param {string} text Inner text for the node to be set.
+ */
+const changeClassAndText = (node, classesAdd, classesRemove = {}, text = null) => {
+    // Remove all classes desired.
+    if (Array.isArray(classesRemove)) {
+        for (const remove of classesRemove) {
+            node.classList.remove(remove);
+        }
+    } else {
+        for (const remove in classesRemove) {
+            node.classList.remove(classesRemove[remove]);
+        }
+    }
+
+    // Add all new classes to the node.
+    if (Array.isArray(classesAdd)) {
+        for (const add of classesAdd) {
+            node.classList.add(add);
+        }
+    } else {
+        for (const add in classesAdd) {
+            node.classList.add(classesAdd[add]);
+        }
+    }
+
+    // Set the inner text of the node.
+    if (text !== null) {
+        node.innerText = text;
+    }
 }
 
 /**

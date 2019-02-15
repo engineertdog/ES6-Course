@@ -1,8 +1,39 @@
 {
     "info": {
-        "title": "ES6"
+        "title": "ES6",
+        "container": "app",
+        "users": "users",
+        "taskList": "taskList",
+        "undefined": "undefined"
+    },
+    "app": {
+        "guest": {
+            "button": "guestButton",
+            "page": "guestPage"
+        },
+        "user": {
+            "button": "userButton",
+            "page": "userPage"
+        },
+        "buttons": {
+            "viewList": "taskViewButton",
+            "deleteList": "taskDeleteButton"
+        },
+        "id": {
+            "taskNum": "taskNum",
+            "taskListName": "todoTaskListName"
+        },
+        "classes": {
+            "taskItem": "taskItem",
+            "taskItemDone": "taskItemDone",
+            "taskDelete": "deleteTaskItem",
+            "trash": "fa-trash-alt",
+            "listGroup": "list-group",
+            "listItem": "list-group-item"
+        }
     },
     "navbarItems": {
+        "buttonClasses": "p-3 py-4",
         "nav": {
             "id": "navbar",
             "classes": [
@@ -13,35 +44,42 @@
         },
         "buttons": {
             "github": {
+                "id": "github",
                 "href": "https://www.github.com/engineertdog/ES6-Course",
                 "text": "Github"
             },
             "infoPage": {
+                "id": "infoPage",
                 "href": "#",
                 "text": "App Info",
                 "class": "guestButton"
             },
             "loginUser": {
+                "id": "loginUser",
                 "href": "#",
                 "text": "Login",
                 "class": "guestButton"
             },
             "registerUser": {
+                "id": "registerUser",
                 "href": "#",
                 "text": "Register",
                 "class": "guestButton"
             },
             "dashboardPage": {
+                "id": "dashboardPage",
                 "href": "#",
                 "text": "To-Do List",
                 "class": "userButton d-none"
             },
             "settingsPage": {
+                "id": "settingsPage",
                 "href": "#",
                 "text": "Settings",
                 "class": "userButton d-none"
             },
             "logoutButton": {
+                "id": "logoutButton",
                 "href": "#",
                 "text": "Logout",
                 "class": "userButton d-none"
@@ -63,6 +101,7 @@
         ]
     },
     "intro": {
+        "id": "intro",
         "classes": [
             "container",
             "h-100",
@@ -87,6 +126,8 @@
         }
     },
     "login": {
+        "id": "login",
+        "page": "loginUser",
         "classes": [
             "container",
             "h-100",
@@ -125,20 +166,22 @@
             {
                 "type": "email",
                 "id": "loginEmail",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "Email Address",
                 "required": true
             },
             {
                 "type": "password",
                 "id": "loginPassword",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "Password",
                 "required": true
             }
         ]
     },
     "register": {
+        "id": "register",
+        "page": "registerUser",
         "classes": [
             "container",
             "h-100",
@@ -177,7 +220,7 @@
             {
                 "type": "text",
                 "id": "registerFirstName",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "First name",
                 "error": "registerFirstNameError",
                 "required": true
@@ -185,7 +228,7 @@
             {
                 "type": "text",
                 "id": "registerLastName",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "Last name",
                 "error": "registerLastNameError",
                 "required": true
@@ -193,7 +236,7 @@
             {
                 "type": "email",
                 "id": "registerEmail",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "Email address",
                 "error": "registerEmailError",
                 "required": true
@@ -201,7 +244,7 @@
             {
                 "type": "password",
                 "id": "registerPassword",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "Password",
                 "error": "registerPasswordError",
                 "required": true
@@ -209,7 +252,7 @@
             {
                 "type": "checkbox",
                 "id": "registerTerms",
-                "class": "form-check-input",
+                "class": ["form-check-input"],
                 "label": "Agree to terms and conditions",
                 "error": "registerTermsError",
                 "required": true
@@ -217,6 +260,8 @@
         ]
     },
     "dashboard": {
+        "id": "dashboard",
+        "page": "dashboardPage",
         "classes": [
             "container",
             "h-100",
@@ -246,6 +291,8 @@
         }
     },
     "todoTaskList": {
+        "id": "todoTaskList",
+        "page": "todoTaskListPage",
         "classes": [
             "container",
             "h-100",
@@ -299,7 +346,7 @@
             {
                 "type": "text",
                 "id": "todoTaskListName",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "List name",
                 "error": "todoTaskListNameError",
                 "required": true
@@ -307,6 +354,8 @@
         ]
     },
     "settings": {
+        "id": "settings",
+        "page": "settingsPage",
         "classes": [
             "container",
             "h-100",
@@ -345,7 +394,7 @@
             {
                 "type": "text",
                 "id": "firstName",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "First name",
                 "error": "firstNameError",
                 "required": true
@@ -353,7 +402,7 @@
             {
                 "type": "text",
                 "id": "lastName",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "Last name",
                 "error": "lastNameError",
                 "required": true
@@ -361,7 +410,7 @@
             {
                 "type": "email",
                 "id": "email",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "Email address",
                 "error": "emailError",
                 "required": true
@@ -369,7 +418,7 @@
             {
                 "type": "password",
                 "id": "password",
-                "class": "form-control",
+                "class": ["form-control"],
                 "label": "Password",
                 "error": "passwordError",
                 "required": true
@@ -453,10 +502,12 @@
     "classes": {
         "block": "d-block",
         "dNone": "d-none",
+        "error": "alert",
         "alert": {
             "success": "alert-success",
             "danger": "alert-danger",
-            "info": "alert-info"
+            "info": "alert-info",
+            "dNone": "d-none"
         },
         "form": {
             "valid": "is-valid",
@@ -468,14 +519,14 @@
             "btn-custom",
             "btn-block"
         ],
-        "inputContainer": "form-label-group",
+        "inputContainer": ["form-label-group"],
         "checkBoxContainer": [
             "checkbox",
             "mb-3",
             "form-group"
         ],
-        "checkboxChild": "form-check",
-        "checkboxLabel": "form-check-label",
+        "checkboxChild": ["form-check"],
+        "checkboxLabel": ["form-check-label"],
         "inputError": "invalid-feedback",
         "taskButtonContainer": [
             "lead",
@@ -488,6 +539,47 @@
             "btn-custom",
             "userButton",
             "d-none"
-        ]
+        ],
+        "requiredTask": {
+            "parent": "taskItemContainer",
+            "container": "noDeleteTask",
+            "checkbox": "requiredTaskDone",
+            "input": "requiredTask",
+            "error": "requiredTaskError"
+        },
+        "dashboard": "todoTaskListContainer"
+    },
+    "formFocus": {
+        "login": "loginEmail",
+        "register": "registerFirstName",
+        "settings": "firstName",
+        "todoTaskList": "todoTaskListName"
+    },
+    "lang": {
+        "edit": "Edit",
+        "submit": "Submit",
+        "vList": "View List",
+        "cList": "Create List",
+        "eList": "Edit List",
+        "dList": "Delete List",
+        "login": {
+            "invalid": "Your password is incorrect.",
+            "dne": "There is no account associated with that email."
+        },
+        "register": {
+            "exists": "That email is already in use."
+        },
+        "dashboard": {
+            "noLists" : "You currently do not have any To-Do Lists made. Create one now!"
+        },
+        "taskList" : {
+            "saved": "We have saved your To-Do List."
+        },
+        "settings": {
+            "saved": "We have updated your settings.",
+            "exists": "That email is already in use",
+            "unchanged": "You have not changed any of your settings.",
+            "dne": "We couldn't find your account."
+        }
     }
 }
