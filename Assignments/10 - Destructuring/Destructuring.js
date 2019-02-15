@@ -28,6 +28,9 @@
  * var taylor = myArray[2];
  */
 
+const comma = `, `;
+const period = `.`;
+
 // Array of user objects to parse.
 const users = [
     {
@@ -112,6 +115,10 @@ const users = [
                 {
                     username: "SallyMae",
                     liked: 7
+                },
+                {
+                    username: "noPhoneOrLikes",
+                    liked: 5
                 }
             ]
         }
@@ -146,99 +153,90 @@ const users = [
 const formatUser = ({username, email, job, info}) => {
     // Grab the string, arrays, and objects from the info key.
     const {name, age, phone, likes, friends} = info;
-    // Create variables to set later and set the default string for phones, liked, and friendsText which
-    // are used in the formatted statement.
-    let numbers, phones = `Sadly, ${name} has no phone number.`,
-        allLikes, liked = `Sadly, ${name} doesn't like anything at all.`,
-        allFriends, friendsText = `${name} has no friends. That is sad.`;
-    // Set counters to format text properly.
-    let cPhoneNum = 0, phoneCount, likeCount, friendCount;
 
-    // This shows how to handle non-existent phone keys in the object.
-    if (phone) {
-        // Set the phone count since the key exists in the object.
-        phoneCount = Object.keys(phone).length - 1;
+    // Grab the string result, or false, from formatSentence with the phone numbers.
+    const phonesResult = formatSentence("phones", `${name} has the following phone numbers: `, phone);
+    // Set phoneText to phoneResult or a default string.
+    const phoneText = phonesResult ? phonesResult : `Sadly, ${name} has no phone number.`;
 
-        // Make sure the phone object is not empty.
-        if (phoneCount !== -1) {
-            // Set all the phone numbers to a rest variable so we can iterate over them.
-            ({...numbers} = phone);
-            phones = `${name} has the following phone numbers: `;
-        }
-    }
+    // Grab the string result, or false, from formatSentence with the likes.
+    const likesResult = formatSentence("likes", `${name} likes the following things: `, likes);
+    // Set likedText to likesResult or a default string.
+    const likedText = likesResult ? likesResult : `Sadly, ${name} doesn't like anything at all.`;
 
-    // Iterate over the phone numbers and add to a phones string that we can add to the returned message.
-    for (const number in numbers) {
-        // Add the phone number to the phones string.
-        phones += numbers[number];
-
-        // If the current number is not the length of the numbes array, format with a comma. Otherwise, end the sentence.
-        if (cPhoneNum !== phoneCount) {
-            phones += `, `;
-        } else {
-            phones += `.`;
-        }
-
-        // Increment the counter.
-        cPhoneNum++;
-    }
-
-    // This shows how to handle non-existent like keys in the object.
-    if (likes) {
-        // Set the like count since it exists in the object;
-        likeCount = likes.length - 1;
-
-        // Make sure the likes object is not empty.
-        if (likeCount !== -1) {
-            // Set all the phone numbers to a rest variable so we can iterate over them.
-            ({...allLikes} = likes);
-            liked = `${name} likes the following things: `;
-        }
-    }
-
-    // Iterate over the likes of the user and add to a likes string that we can add to the returned message.
-    for (const cLike in allLikes) {
-        // Add the like to the liked string.
-        liked += allLikes[cLike];
-
-        // If the index is not the last item, format it with a comma. Otherwise, end the sentence.
-        if (cLike != likeCount) {
-            liked += `, `;
-        } else {
-            liked += `.`;
-        }
-    }
-
-    // This shows how to handle non-existent friend keys in the object.
-    if (friends) {
-        // Set the friend count since it exists in the object;
-        friendCount = friends.length - 1;
-
-        // Make sure the friends object is not empty.
-        if (friendCount !== -1) {
-            // Set all the friends to a rest variable so we can iterate over them.
-            ({...allFriends} = friends);
-            friendsText = `${name} has the following friends: `;
-        }
-    }
-
-    // Iterate over the friends and add to a friends string that we can add to the returned message.
-    for (const f in allFriends) {
-        // Add the username and liked status to the friendsText string.
-        friendsText += `${allFriends[f].username} liked ${allFriends[f].liked}/10`;
-
-        // If the index is not the last item, format it with a comma. Otherwise, end the sentence.
-        if (f != friendCount) {
-            friendsText += `, `;
-        } else {
-            friendsText += `.`;
-        }
-    }
+    // Grab the string result, or false, from formatSentence with the friends.
+    const friendsResult = formatSentence("friends", `${name} has the following friends: `, friends);
+    // Set friendsText to friendsResult or a default string.
+    const friendsText = friendsResult ? friendsResult : `${name} has no friends. That is sad.`;
 
     // Formatted statement to return to the calling function.
-    const formattedStatement = `Meet ${info.name}; they are ${age} years old. Their username here is "${username}" and you can reach them at ${email}. Their job title is "${job}". ${phones} ${liked} ${friendsText}`;
+    const formattedStatement = `Meet ${info.name}; they are ${age} years old. Their username here is "${username}" and you can reach them at ${email}. Their job title is "${job}". ${phoneText} ${likedText} ${friendsText}`;
 
+    // Return the formatted statement.
     return formattedStatement;
+}
+
+/**
+ * Format a sentence for a set of object or array values passed to the function.
+ *
+ * @param {string} field The object or array field that we want to format text for.
+ * @param {string} formattedString Base string to write data to.
+ * @param {object} objArr Object or array to parse.
+ */
+const formatSentence = (field, formattedString, objArr) => {
+    // Check if the object / array is null.
+    if (objArr) {
+        // Set a length variable for the object / array length and a counter.
+        let length, cPhoneNum = 0;
+
+        // Set the length to the length of the array or object and subtract 1 to get the total length.
+        if (Array.isArray(objArr)) {
+            length = objArr.length - 1;
+        } else {
+            length = Object.keys(objArr).length - 1;
+        }
+
+        // Length will be -1 if the object / array is empty. This will cause the function to return false if empty.
+        if (length !== -1) {
+            // Grab all of the items from the object / array and set them to a rest variable.
+            let {...allItems} = objArr;
+
+            // Loop through all of the items from the object / array.
+            for (const item in objArr) {
+                // Add text to the base string passed, and format the text added based on the key passed.
+                if (field === "phones") {
+                    formattedString += `${allItems[item]}${formatSentenceEnd(cPhoneNum, length)}`;
+                    // Since phones is an object, we have to keep track of the current number with a counter instead of the index
+                    // number, which is what the arrays keep track with.
+                    cPhoneNum++;
+                } else if (field === "likes") {
+                    formattedString += `${allItems[item]}${formatSentenceEnd(item, length)}`;
+                } else if (field === "friends") {
+                    formattedString += `${allItems[item].username} liked ${allItems[item].liked}/10${formatSentenceEnd(item, length)}`;
+                }
+            }
+
+            // Return the formatted string.
+            return formattedString;
+        }
+    }
+
+    // Return false if the object / array is null or empty.
+    return false;
+}
+
+/**
+ * Return either a comma or period if the index is equal to the passed object or array length.
+ *
+ * @param {number} index Index of the current array / object item.
+ * @param {number} count Length of the array / object.
+ */
+const formatSentenceEnd = (index, count) => {
+    if (parseInt(index) !== count) {
+        return comma;
+    } else {
+        return period;
+    }
 }
 
 // Loop through the users and log the result of the function.
