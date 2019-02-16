@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Project #2 - Libraries</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/blood.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h2>ReactJS</h2>
+
+					A slideshow of why you should use <a href="https://reactjs.org/" title="ReactJS">ReactJS</a>.
+				</section>
+				<section>
+					<section>
+						<h2>Benefits</h2>
+
+						<p class="fragment fade-down">Scroll Down</p>
+					</section>
+					<section>
+						<h2>Virtual DOM</h2>
+
+						With traditional DOMs, any changes to user inputs, queries, etc. cause the entire DOM tree to be updated. With React, a virtual DOM is used to update the real DOM, and only elements that need to be updated are updated.
+					</section>
+					<section>
+						<h2>Code Reuse</h2>
+
+						With ReactJS, it is extremely easy to reuse components throughout an application. You're able to perform functions, styling, attribute setting, and more, on any component you reuse. Components are isolated, easy to update, ergonomic, and more precise.
+					</section>
+					<section>
+						<h2>Data Flow</h2>
+
+						ReactJS uses downward data binding which ensures that changes to child elements does not affect their parents. In some view-model systems, child elements may affect the parent if changed. ReactJS fixes this.
+					</section>
+					<section>
+						<h2>Usage</h2>
+
+						ReactJS is one of the most, if not the most, popular front-end frameworks today. You're quite likely to come across a team that uses it. Due to this, there are constant updates to the source that continually improve the framework.
+					</section>
+				</section>
+				<section>
+					<section>
+						<h2>Drawbacks</h2>
+
+						<p class="fragment fade-down">Scroll Down</p>
+					</section>
+					<section>
+						<h2>Continuous Development</h2>
+
+						With the high pace of development of the framework, it can be hard to keep up with the all of the changes.
+					</section>
+					<section>
+						<h2>Poor Documentation</h2>
+
+						The documentation lacks proper updates that reflect the current status of the framework, and this is thought mostly due to the speed of the development of the framework. This can make it harder to learn ReactJS.
+					</section>
+					<section>
+						<h2>JSX</h2>
+
+						JSX is an extension that allows mixing of HTML with JavaScript. It has its benefits, such as protection from injection. However, there can be a learning curve that developers have a hard time with.
+					</section>
+				</section>
+				<section>
+					<section>
+						<h2>Example Code</h2>
+
+						<p class="fragment fade-down">Scroll Down</p>
+					</section>
+					<section data-markdown>
+						<textarea data-template>
+							Creating re-usable components is this easy. Take a look at a button with a click handler.
+
+							```javascript
+							function Square(props) {
+								return (
+									<button className="squareClass" onClick={props.onClick}>
+										{props.value}
+									</button>
+								);
+							}
+							```
+						</textarea>
+					</section>
+					<section data-markdown>
+						<textarea data-template>
+							JSX is very similar to backtick notation in ES6. Take a look at how you can use attributes, variables, and functions in JSX.
+
+							```javascript
+							const element = <img src={user.avatarUrl} title="Avatar">{formatUsername(this.props.username)}</img>;
+							```
+						</textarea>
+					</section>
+					<section data-markdown>
+						<textarea data-template>
+							Keys are important in ReactJS, especially when you have lists. However, the key needs to be set wherever you map the item, not necessarily where you have a list item component itself.
+
+							```javascript
+							function ListItem(props) {
+								// Correct! There is no need to specify the key here:
+								return <li>{props.value}</li>;
+							}
+
+							function NumberList(props) {
+								const numbers = props.numbers;
+								const listItems = numbers.map((number) =>
+									// Correct! Key should be specified inside the array.
+									<ListItem key={number.toString()} value={number} />
+
+								);
+								return (
+									<ul>
+										{listItems}
+									</ul>
+								);
+							}
+							```
+						</textarea>
+					</section>
+				</section>
+				<section>
+					<h2>Conclusion</h2>
+
+					There is quite a learning curve to overcome transitioning to React. However, if you are able to get past having to continuously learn the ever-changing framework, then you will be able to utilize a widely used open source front-end framework that makes it easier to develop applications.
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				slideNumber: true,
+				fragmentInURL: true,
+				mouseWheel: true,
+				transition: "convex",
+				backgroundTransition: "convex",
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
