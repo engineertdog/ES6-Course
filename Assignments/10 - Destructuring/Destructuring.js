@@ -26,6 +26,7 @@
  * var myArray = ["Joe", "Taylor", "Bob", "Sally"];
  * var sally = myArray[3];
  * var taylor = myArray[2];
+ *
  */
 
 const comma = `, `;

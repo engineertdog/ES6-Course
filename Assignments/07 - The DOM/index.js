@@ -3,6 +3,7 @@
  *
  * This JavaScript file is used to dynamically generate 10 rectangles on the HTML page with unique IDs
  * and background colors.
+ *
  */
 
 // Setup our rectangleContainer div reference and the reference to all of the generated rectangles.
