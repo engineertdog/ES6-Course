@@ -1,4 +1,13 @@
 /**
+ * Assignment #12 - Object Oriented Programming
+ *
+ * The code in this file showcases how Object Oriented Programming is useful in real world applications. A number
+ * of features are of course not included, and certain things are assumed. However, this file indicates how OOP
+ * makes it easier to code and maintain code for an application.
+ *
+ */
+
+/**
  * Product object models the products available for purchase. This could be the parent object
  * with child objects for different categories of products.
  *
