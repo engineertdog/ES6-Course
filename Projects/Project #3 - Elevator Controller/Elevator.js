@@ -7,7 +7,8 @@
  * building's waitlist which is used by the elevators to know who to pick up, where to pick them up at, and where
  * to deliver them. If one elevator is targeting a floor, the other elevator will find the next longest wait by a person
  * and target their floor instead. The elevators run until all people are served, or until the eStop button is pushed.
- * Only when the reset button is pushed will the elevator reset.
+ * Only when the reset button is pushed will the elevator reset. Current application is designed for a maximum of two
+ * elevators, although the application could be changed a little to support more than two elevators.
  *
  */
 
@@ -24,6 +25,7 @@ const timeout = (ms) => {
 /**
  * Building object keeps track of the people waiting for elevators, people served by elevators,
  * and the elevators themselves.
+ *
  */
 class Building {
     // Construct the new building object.
@@ -37,6 +39,7 @@ class Building {
 
     /**
      * Return the building waitlist.
+     *
      */
     getWaitlist() {
         return this.people;
@@ -64,6 +67,7 @@ class Building {
 
     /**
      * Add a person object to the servedPeople array.
+     *
      */
     addServed(person) {
         this.servedPeople.push(person);
@@ -71,6 +75,7 @@ class Building {
 
     /**
      * Return the people served by elevators at the building.
+     *
      */
     getServedPeople() {
         return this.servedPeople;
@@ -78,6 +83,7 @@ class Building {
 
     /**
      * Find the longest wait for an elevator.
+     *
      */
     getLongestWait() {
         // Sort the waitlist by the person's wait time.
@@ -102,6 +108,7 @@ class Building {
 
     /**
      * Add an elevator to the building.
+     *
      */
     addElevator(elevator) {
         // Push the passed elevator object to the elevators array.
@@ -110,6 +117,7 @@ class Building {
 }
 
 class Elevator {
+    // Construct an elevator object and set default information about the elevator.
     constructor (building, name, floorMin, floorMax) {
         this.building = building;
         this.name = name;
@@ -136,6 +144,13 @@ class Elevator {
         this.passengers.push(passenger);
     }
 
+    /**
+     * Start the elevator and continuously check for passengers on the building's waitlist
+     * to pick them up and drop them off. Use information about the other elevator in service
+     * to know where to go, so that both elevators do not head to the same floor. Target the
+     * person who has waited the longest.
+     *
+     */
     async startElevator() {
         // Start the elevator (used for the call button when adding users to the waitlist).
         this.started = true;
@@ -196,7 +211,7 @@ class Elevator {
                         if (!checkedWait) {
                             // Stop the elevator.
                             this.stopElevator();
-                            return;
+                            return false;
                         }
                     } else {
                         // Move passengers since the elevator currently has at least one passenger.
@@ -214,7 +229,7 @@ class Elevator {
                 } else {
                     // Stop the elevator since the waitlist is empty and it has no passengers.
                     this.stopElevator();
-                    return;
+                    return false;
                 }
             }
         } else {
@@ -231,10 +246,11 @@ class Elevator {
 
     /**
      * Check if we can stop running the elevator.
+     *
      */
     stopElevator() {
         // Log the people served by elevators in the hotel.
-        console.log(this.building.getServedPeople())
+        // console.log(this.building.getServedPeople())
         // Log that the elevator no longer has people to serve.
         console.log(`${this.name}: Out of people to serve.`);
         // Turn the elevator off.
@@ -243,6 +259,7 @@ class Elevator {
 
     /**
      * Find the passenger on the elevator with the longest wait and get them to their floor.
+     *
      */
     async movePassengers() {
         // Sort the passengers on the elevator to put the one with the longest wait at the front.
@@ -258,6 +275,7 @@ class Elevator {
     /**
      * Move the main passenger in the elevator to their floor. This is the person in the elevator who has
      * waited the longest.
+     *
      */
     async moveMainPassenger() {
         // Check if the elevator has the person with the longest wait.
@@ -272,13 +290,36 @@ class Elevator {
                 // Move to that person's desired floor.
                 await this.moveFloor(this.mainPassenger[0].getDesiredFloor());
             } else {
-                // Check if the elevator has a main passenger.
-                if (this.mainPassenger.length === 0) {
-                    // Move the current passengers if the elevator has no main passenger.
-                    await this.movePassengers();
+                // Check if the main passenger is still in the waitlist.
+                let mainStillExists = false;
+                // Grab the building's elevator waitlist.
+                const waitlist = this.building.getWaitlist();
+
+                // Loop through the waitlist to see who can be picked up.
+                for (const w in waitlist) {
+                    if (this.mainPassenger.length > 0) {
+                        if (waitlist[w].id === this.mainPassenger[0].id) {
+                            mainStillExists = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Check to see if the main passenger still exists.
+                if (mainStillExists) {
+                    // Check if the elevator has a main passenger.
+                    if (this.mainPassenger.length === 0) {
+                        // Move the current passengers if the elevator has no main passenger.
+                        await this.movePassengers();
+                    } else {
+                        // Go pick up the person with the longest wait.
+                        await this.moveFloor(this.mainPassenger[0].getCurrentFloor());
+                    }
                 } else {
-                    // Go pick up the person with the longest wait.
-                    await this.moveFloor(this.mainPassenger[0].getCurrentFloor());
+                    // Reset the main passenger to an empty array if they're no longer in the waitlist.
+                    this.mainPassenger = [];
+                    // Reset hasMainPassenger to false.
+                    this.hasMainPassenger = false;
                 }
             }
         }
@@ -287,6 +328,7 @@ class Elevator {
     /**
      * Move the elevator to the target floor while continuously checking if the eStop button has been pressed,
      * or if the elevator has reached the target floor so that the function can quit.
+     *
      */
     async moveElevator() {
         // Set the direction of movement based on where the target floor is in relation to the current floor.
@@ -294,24 +336,25 @@ class Elevator {
         // Let the elevator object know the elevator is moving.
         this.moving = true;
 
-        // Move only if the eStop button has not been pressed.
-        if (!this.eStopped) {
-            // Check if the elevator is at it's target floor.
-            if (this.floor !== this.targetFloor) {
+        // Check if the elevator is at it's target floor.
+        while (this.floor !== this.targetFloor) {
+            // Stop the elevator if the eStop is pressed.
+            if (!this.eStopped) {
                 // Move in the direction of the target floor.
                 this.floor = +(this.floor + direction).toFixed(2);
                 // Wait 0.01 seconds before checking the elevator's location again by calling the function on itself.
                 await timeout(10);
-                this.moveElevator();
             } else {
-                // The elevator has reached its target floor, so set moving to false.
-                this.moving = false;
-                // Let the elevator know that it can check if it can drop passenger off and pick up more.
-                this.canCheckFloor = true;
-                // Perform the floor check.
-                await this.checkFloor();
+                break;
             }
         }
+
+        // The elevator has reached its target floor, so set moving to false.
+        this.moving = false;
+        // Let the elevator know that it can check if it can drop passenger off and pick up more.
+        this.canCheckFloor = true;
+        // Perform the floor check.
+        return Promise.resolve();
     }
 
     /**
@@ -320,31 +363,32 @@ class Elevator {
      * @param {number} floor Floor to move the elevator to.
      */
     async moveFloor(floor) {
-        // Make sure the doors aren't open before trying to move the elevator.
-        if (!this.doorsOpen) {
-            // Make sure the elevator is not already moving.
-            if (!this.moving) {
-                // Check if the elevator is already at the target floor.
-                if (this.floor !== floor) {
-                    // Make sure the elevator can reach the target floor and that the target floor is not the current floor.
-                    if ((floor >= this.floorMin) && (floor <= this.floorMax) && (floor !== this.floor)) {
-                        // Set the elevator's target floor to the floor number passed.
-                        this.targetFloor = floor;
-                        // Log that the elevator is now moving.
-                        console.log(`${this.name}: Moving to floor #${floor}`);
-                        // Move the elevator with the moveElevator function.
-                        await this.moveElevator();
-                    }
-                } else {
-                    // Check if the elevator has the main passenger because we are already at the target floor.
-                    if (this.hasMainPassenger) {
-                        // Set moving back to false.
-                        this.moving = false;
-                        // Allow the elevator to check the floor.
-                        this.canCheckFloor = true;
-                        // Perform the floor check.
-                        await this.checkFloor();
-                    }
+        // Make sure the doors aren't open, the elevator is not moving, and the elevator's
+        // eStop button hasn't been pressed.
+        if (!this.doorsOpen && !this.moving && !this.eStopped) {
+            // Check if the elevator is already at the target floor.
+            if (this.floor !== floor) {
+                // Make sure the elevator can reach the target floor and that the target floor is not the current floor.
+                if ((floor >= this.floorMin) && (floor <= this.floorMax) && (floor !== this.floor)) {
+                    // Set the elevator's target floor to the floor number passed.
+                    this.targetFloor = floor;
+                    // Log that the elevator is now moving.
+                    console.log(`${this.name}: Moving to floor #${floor}`);
+                    // Move the elevator with the moveElevator function.
+                    await this.moveElevator()
+                        .then(() => {
+                            this.checkFloor();
+                        })
+                }
+            } else {
+                // Check if the elevator has the main passenger because we are already at the target floor.
+                if (this.hasMainPassenger) {
+                    // Set moving back to false.
+                    this.moving = false;
+                    // Allow the elevator to check the floor.
+                    this.canCheckFloor = true;
+                    // Perform the floor check.
+                    await this.checkFloor();
                 }
             }
         }
@@ -353,90 +397,32 @@ class Elevator {
     /**
      * Check the floor that the elevator is on to see what passengers on the building's waitlist
      * that it can pick up or drop off at the floor the elevator is at.
+     *
      */
     async checkFloor() {
-        // Set counters for the number of passengers picked up or dropped off.
-        let droppedOff = 0, pickedUp = 0;
+        // Make sure the elevator has the ability to check the current floor and is not moving.
+        if (this.canCheckFloor && !this.moving) {
+            // Make sure the elevator is at the target floor for passengers.
+            if (this.floor === this.targetFloor) {
+                // Check if the elevator doors are already open or not.
+                if (!this.doorsOpen) {
+                    // Set the doors to open.
+                    this.doorsOpen = true;
+                    // Log that the doors are not open.
+                    console.log(`${this.name}: Opening Doors.`);
+                }
 
-        // Make sure the elevator has the ability to check the current floor.
-        if (this.canCheckFloor) {
-            // Make sure the elevator is not moving.
-            if (!this.moving) {
-                // Make sure the elevator is at the target floor for passengers.
-                if (this.floor === this.targetFloor) {
-                    // Check if the elevator doors are already open or not.
-                    if (!this.doorsOpen) {
-                        // Set the doors to open.
-                        this.doorsOpen = true;
-                        // Log that the doors are not open.
-                        console.log(`${this.name}: Opening Doors.`);
-                    }
+                // Find the people picked up and dropped off by the elevator.
+                const pickedUp = await this.pickupPassengers();
+                const droppedOff = await this.letOffPassengers();
 
-                    // Grab the building's elevator waitlist.
-                    const waitlist = this.building.getWaitlist();
+                // Wait 2 seconds to let people off and on the elevator.
+                await timeout(2000);
 
-                    // Loop through the waitlist to see who can be picked up.
-                    for (const w in waitlist) {
-                        // Find the person's current floor and desired floor.
-                        const cFloor = waitlist[w].getCurrentFloor();
-                        const dFloor = waitlist[w].getDesiredFloor();
-
-                        // Check if the person on the waitlist is on the floor that the elevator is currently at.
-                        if (this.floor === cFloor) {
-                            // Make sure the elevator can reach the floor the passenger is looking to go to.
-                            if ((dFloor >= this.floorMin) && (dFloor <= this.floorMax)) {
-                                // If the waitlist passenger currently being looped over has the ID of the main passenger (the
-                                // person with the longest wait time), then set hasMainPassenger to true.
-                                if (waitlist[w].id === this.mainPassenger[0].id) {
-                                    this.hasMainPassenger = true;
-                                }
-
-                                // Add the passenger to the elevator's passenger list.
-                                this.addPassenger(waitlist[w]);
-                                // Remove the passenger from the building's waitlist.
-                                this.building.removeWaitlist(waitlist[w]);
-                                // Increment the number of passengers picked up at the floor.
-                                pickedUp++;
-                            }
-                        }
-                    }
-
-                    // Loop through the elevator's passenger list to see who can be dropped off.
-                    for (const p in this.passengers) {
-                        // Find the desired floor of the passenger.
-                        const dFloor = this.passengers[p].getDesiredFloor();
-
-                        // Check to see if the passenger is looking to get off at the floor the elevator is currently at.
-                        if (this.floor === dFloor) {
-                            // Check if the elevator still has the main passenger, the person with the longest wait.
-                            if (this.mainPassenger.length !== 0) {
-                                // If the elevator has the main passenger still, check if it's ID is equal to the
-                                // current passenger's ID being looped over.
-                                if (this.mainPassenger[0].id === this.passengers[p].id) {
-                                    // Reset the main passenger to an empty array if we've found the main passenger and
-                                    // let them off the elevator.
-                                    this.mainPassenger = [];
-                                    // Reset hasMainPassenger to false.
-                                    this.hasMainPassenger = false;
-                                }
-                            }
-
-                            // Call the passenger's arrived function to make changes to their object.
-                            this.passengers[p].setArrived(this.name);
-                            // Add the passenger to the building's elevator served list.
-                            this.building.addServed(this.passengers[p]);
-                            // Remove the passenger from the elevator's passenger list.
-                            this.passengers.splice(p, 1);
-                            // Increment the dropped off counter.
-                            droppedOff++;
-                        }
-                    }
-
-                    // Wait up to 2 seconds to let people off and on the elevator.
-                    await timeout(Math.random() * 2000);
-
-                    // Check if the doors are open.
-                    if (this.doorsOpen) {
+                // Check if the doors are open.
+                if (this.doorsOpen) {
+                    // Close the doors if the elevator's eStop button has not been pressed.
+                    if (!this.eStopped) {
                         // Close the doors and do a few other things.
                         this.resetDoors();
                         // Reset the ability to check the floor to false.
@@ -450,8 +436,93 @@ class Elevator {
     }
 
     /**
+     * Loop through the building's waitlist and pickup passengers whose current floor
+     * is the current floor of the elevator, and whose target floor is reachable by
+     * the elevator.
+     *
+     */
+    pickupPassengers() {
+        // Set picked up count
+        let pickedUp = 0;
+        // Grab the building's elevator waitlist.
+        const waitlist = this.building.getWaitlist();
+
+        // Loop through the waitlist to see who can be picked up.
+        for (const w in waitlist) {
+            // Find the person's current floor and desired floor.
+            const cFloor = waitlist[w].getCurrentFloor();
+            const dFloor = waitlist[w].getDesiredFloor();
+
+            // Check if the person on the waitlist is on the floor that the elevator is currently at.
+            if (this.floor === cFloor) {
+                // Make sure the elevator can reach the floor the passenger is looking to go to.
+                if ((dFloor >= this.floorMin) && (dFloor <= this.floorMax)) {
+                    // If the waitlist passenger currently being looped over has the ID of the main passenger (the
+                    // person with the longest wait time), then set hasMainPassenger to true.
+                    if (waitlist[w].id === this.mainPassenger[0].id) {
+                        this.hasMainPassenger = true;
+                    }
+
+                    // Add the passenger to the elevator's passenger list.
+                    this.addPassenger(waitlist[w]);
+                    // Remove the passenger from the building's waitlist.
+                    this.building.removeWaitlist(waitlist[w]);
+                    // Increment the number of passengers picked up at the floor.
+                    pickedUp++;
+                }
+            }
+        }
+
+        return Promise.resolve(pickedUp);
+    }
+
+    /**
+     * Loop through the passengers on the elevator and let off those whose target floor
+     * is the current floor of the elevator.
+     *
+     */
+    letOffPassengers() {
+        // Set dropped off count
+        let droppedOff = 0;
+
+        // Loop through the elevator's passenger list to see who can be dropped off.
+        for (const p in this.passengers) {
+            // Find the desired floor of the passenger.
+            const dFloor = this.passengers[p].getDesiredFloor();
+
+            // Check to see if the passenger is looking to get off at the floor the elevator is currently at.
+            if (this.floor === dFloor) {
+                // Check if the elevator still has the main passenger, the person with the longest wait.
+                if (this.mainPassenger.length !== 0) {
+                    // If the elevator has the main passenger still, check if it's ID is equal to the
+                    // current passenger's ID being looped over.
+                    if (this.mainPassenger[0].id === this.passengers[p].id) {
+                        // Reset the main passenger to an empty array if we've found the main passenger and
+                        // let them off the elevator.
+                        this.mainPassenger = [];
+                        // Reset hasMainPassenger to false.
+                        this.hasMainPassenger = false;
+                    }
+                }
+
+                // Call the passenger's arrived function to make changes to their object.
+                this.passengers[p].setArrived(this.name);
+                // Add the passenger to the building's elevator served list.
+                this.building.addServed(this.passengers[p]);
+                // Remove the passenger from the elevator's passenger list.
+                this.passengers.splice(p, 1);
+                // Increment the dropped off counter.
+                droppedOff++;
+            }
+        }
+
+        return Promise.resolve(droppedOff);
+    }
+
+    /**
      * Emergency stop the elevator to the nearest floor and prevent usage of the elevator until the
      * reset button is pushed.
+     *
      */
     eStop() {
         // Find the nearest floor and go to it.
@@ -472,6 +543,7 @@ class Elevator {
     /**
      * Reset the elevator doors. Function would also be called when the reset button inside the elevator is
      * pushed so that after the emergency stop button has been pressed, the elevator can be used again.
+     *
      */
     resetDoors() {
         // Return the emergency stopped boolean to false.
@@ -485,6 +557,7 @@ class Elevator {
 
 /**
  * Person class keeps track of information about people trying to use elevators within a building.
+ *
  */
 class Person {
     // Construct the Person object.
@@ -517,6 +590,7 @@ class Person {
 
     /**
      * Return the floor the person is currently at.
+     *
      */
     getCurrentFloor() {
         return this.currentFloor;
@@ -524,6 +598,7 @@ class Person {
 
     /**
      * Return the person's desired floor to take the elevator to.
+     *
      */
     getDesiredFloor() {
         return this.desiredFloor;
@@ -531,6 +606,7 @@ class Person {
 
     /**
      * Return how long the person has been waiting to get to their floor.
+     *
      */
     getWait() {
         return Date.now() - this.startWait;
@@ -550,6 +626,7 @@ hotel.addElevator(elevatorB);
 
 /**
  * Add people to the building who need to use the elevators.
+ *
  */
 const addPeople = async () => {
     // Loop a specified amount of times to add a certain number of people.
